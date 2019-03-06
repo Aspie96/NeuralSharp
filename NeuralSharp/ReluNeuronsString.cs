@@ -1,5 +1,5 @@
 ﻿/*
-    (C) 2018 Valentino Giudice
+    (C) 2019 Valentino Giudice
 
     This software is provided 'as-is', without any express or implied
     warranty. In no event will the authors be held liable for any damages
@@ -26,42 +26,23 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NeuralNetwork
+namespace NeuralSharp
 {
-    /// <summary>Represents a layer in a neural network using the RELU function.</summary>
     [DataContract]
     public class ReluNeuronsString : NeuronsString
     {
-        /// <summary>Creates a new instance of the <code>ReluNeuronsString</code> class.</summary>
-        /// <param name="length">The lenght of the layer.</param>
-        public ReluNeuronsString(int length) : base(length) { }
+        protected ReluNeuronsString(ReluNeuronsString original, bool siamese) : base(original, siamese) { }
 
-        /// <summary>Returns the value of the activation function for the given input value.</summary>
-        /// <param name="input">The input to be given to the activation function.</param>
-        /// <returns>The output of the activation function.</returns>
+        public ReluNeuronsString(int length, bool createIO = false) : base(length, createIO) { }
+        
         protected override double Activation(double input)
         {
             return Math.Max(input, 0.0);
         }
 
-        /// <summary>Returns the derivative of the activation function for the given input and output value.</summary>
-        /// <param name="input">The input value.</param>
-        /// <param name="output">The output value.</param>
-        /// <returns>The derviative of the activation function.</returns>
         protected override double ActivationDerivative(double input, double output)
         {
-            if (input <= 0.0)
-            {
-                return 0.0;
-            }
-            return 1.0;
-        }
-
-        /// <summary>Creates a copy of this instance of the <code>ReluNeuronsString</code> class.</summary>
-        /// <returns>The generated instance of the <code>ReluNeuronsString</code> class.</returns>
-        public override object Clone()
-        {
-            return new ReluNeuronsString(this.Length);
+            return (output > 0.0 ? 1.0 : 0.0);
         }
     }
 }

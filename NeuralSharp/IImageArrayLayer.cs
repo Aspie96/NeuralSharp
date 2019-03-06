@@ -26,10 +26,12 @@ using System.Threading.Tasks;
 
 namespace NeuralSharp
 {
-    public interface ILayer<TIn, TOut> : ILayerFrom<TIn>, ILayerTo<TOut> where TIn : class where TOut : class
+    public interface IImageArrayLayer : ILayer<Image, double[]>
     {
-        void BackPropagate(TOut outputError, TIn inputError, bool learning);
-        void SetInputAndOutput(TIn input, TOut output);
-        TOut SetInputGetOutput(TIn input);
+        int InputDepth { get; }
+        int InputWidth { get; }
+        int InputHeight { get; }
+        int OutputSize { get; }
+        int OutputSkip { get; }
     }
 }

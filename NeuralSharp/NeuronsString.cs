@@ -1,5 +1,5 @@
 ﻿/*
-    (C) 2018 Valentino Giudice
+    (C) 2019 Valentino Giudice
 
     This software is provided 'as-is', without any express or implied
     warranty. In no event will the authors be held liable for any damages
@@ -26,137 +26,136 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NeuralNetwork
+namespace NeuralSharp
 {
-    /// <summary>Represents a layer in a neural network.</summary>
     [DataContract]
-    public class NeuronsString : ILayer
+    public class NeuronsString : IArraysLayer
     {
-        private double[] inputs;
-        private double[] outputs;
+        private double[] input;
+        private double[] output;
+        private int inputSkip;
+        private int outputSkip;
+        [DataMember]
+        private int length;
 
-        /// <summary>Creates a new instance of the <code>NeuronsString</code> class.</summary>
-        /// <param name="length">The lenght of the layer.</param>
-        public NeuronsString(int length)
+        protected NeuronsString(NeuronsString original, bool siamese)
         {
-            this.inputs = new double[length];
-            this.outputs = new double[length];
+            this.length = original.Length;
         }
 
-        /// <summary>The length of the layer.</summary>
-        [DataMember]
+        public NeuronsString(int length, bool createIO = false)
+        {
+            if (createIO)
+            {
+                this.input = Backbone.CreateArray<double>(length);
+                this.output = Backbone.CreateArray<double>(length);
+                this.inputSkip = 0;
+                this.outputSkip = 0;
+            }
+            this.length = length;
+        }
+        
+        public double[] Input
+        {
+            get { return this.input; }
+        }
+
+        public double[] Output
+        {
+            get { return this.output; }
+        }
+
+        public int InputSkip
+        {
+            get { return this.inputSkip; }
+        }
+
+        public int OutputSkip
+        {
+            get { return this.outputSkip; }
+        }
+
+        public int InputSize
+        {
+            get { return this.length; }
+        }
+
+        public int OutputSize
+        {
+            get { return this.length; }
+        }
+
         public int Length
         {
-            get { return this.inputs.Length; }
-            private set
-            {
-                this.inputs = new double[value];
-                this.outputs = new double[value];
-            }
+            get { return this.length; }
         }
 
-        /// <summary>The lates inputs fed to the layer.</summary>
-        protected double[] Inputs
+        public int Parameters
         {
-            get { return this.inputs; }
+            get { return 0; }
         }
 
-        /// <summary>The latest outputs from the layer.</summary>
-        protected double[] Outputs
-        {
-            get { return this.outputs; }
-        }
-
-        /// <summary>Returns the value of the activation function for the given input value.</summary>
-        /// <param name="input">The input to be given to the activation function.</param>
-        /// <returns>The output of the activation function.</returns>
         protected virtual double Activation(double input)
         {
             return 1.0 / (1.0 + Math.Exp(-input));
         }
 
-        /// <summary>Returns the derivative of the activation function for the given input and output value.</summary>
-        /// <param name="input">The input value.</param>
-        /// <param name="output">The output value.</param>
-        /// <returns>The derviative of the activation function. Always <code>0</code>.</returns>
         protected virtual double ActivationDerivative(double input, double output)
         {
             return output * (1.0 - output);
         }
 
-        /// <summary>Feeds a value to a neuron of the layer.</summary>
-        /// <param name="index">The index of the neuron to be fed.</param>
-        /// <param name="input">The value to be fed.</param>
-        public virtual void Feed(int index, double input)
+        public virtual void Feed(bool learning = false)
         {
-            this.Inputs[index] = input;
-            this.Outputs[index] = this.Activation(input);
+            Backbone.ApplyNeuronsString(this.input, this.inputSkip, this.output, this.outputSkip, this.length, this.Activation);
         }
 
-        /// <summary>Backpropagates an error trough this layer, updating it accoring to the derivatives of the neurons.</summary>
-        /// <param name="error">The eror to be backpropagated.</param>
-        /// <param name="skip">The amount of positions to skip in the error array.</param>
-        public virtual void BackPropagate(double[] error, int skip = 0)
+        public virtual void BackPropagate(double[] outputErrorArray, int outputErrorSkip, double[] inputErrorArray, int inputErrorSkip, bool learning)
         {
-            for (int i = 0; i < this.Length; i++)
-            {
-                error[i + skip] = error[i + skip] * this.ActivationDerivative(this.Inputs[i], this.Outputs[i]);
-            }
+            Backbone.BackpropagateNeuronsString(this.input, this.inputSkip, this.output, this.outputSkip, this.length, outputErrorArray, outputErrorSkip, inputErrorArray, inputErrorSkip, this.ActivationDerivative, learning);
         }
 
-        /// <summary>Returns the latest output of a neuron of this layer.</summary>
-        /// <param name="index">The index of the neuron.</param>
-        /// <returns>The latest output of the chosen neuron.</returns>
-        public double GetLastOutput(int index)
+        public void BackPropagate(double[] outputError, double[] inputError, bool learning)
         {
-            return this.Outputs[index];
+            this.BackPropagate(outputError, 0, inputError, 0, learning);
         }
 
-        /// <summary>Gets the latest outputs of the neurons of this layer.</summary>
-        /// <param name="output">The array to be written the output into.</param>
-        /// <param name="skip">The amount of positions to skip in the output array.</param>
-        public void GetLastOutput(double[] output, int skip = 0)
+        public void SetInputAndOutput(double[] inputArray, int inputSkip, double[] outputArray, int outputSkip)
         {
-            Array.Copy(this.Outputs, 0, output, skip, this.Length);
+            this.input = inputArray;
+            this.inputSkip = inputSkip;
+            this.output = outputArray;
+            this.outputSkip = outputSkip;
         }
 
-        /// <summary>Returns the latest input of a neuron of this layer.</summary>
-        /// <param name="index">The index of the neuron.</param>
-        /// <returns>The latest input fed to the chosen neuron.</returns>
-        public double GetLastInput(int index)
+        public void SetInputAndOutput(double[] input, double[] output)
         {
-            return this.Inputs[index];
+            this.SetInputAndOutput(input, 0, output, 0);
         }
 
-        /// <summary>Gets the latest inputs fed to this layer.</summary>
-        /// <param name="input">The array to be written the input into.</param>
-        /// <param name="skip">The amount of positions to be skipped in the input array.</param>
-        public void GetLastInput(double[] input, int skip = 0)
+        public double[] SetInputGetOutput(double[] inputArray, int inputSkip)
         {
-            Array.Copy(this.Inputs, 0, input, skip, this.Length);
+            this.input = inputArray;
+            this.inputSkip = inputSkip;
+            this.outputSkip = 0;
+            return this.output = Backbone.CreateArray<double>(this.Length);
         }
 
-        /// <summary>Feeds the given input trough the layer.</summary>
-        /// <param name="input">The array to be fed.</param>
-        /// <param name="skip">The amount of positions to be skipped in the input array.</param>
-        public virtual void Feed(double[] input, int skip = 0)
+        public double[] SetInputGetOutput(double[] input)
         {
-            for (int i = 0; i < this.Length; i++)
-            {
-                this.Inputs[i] = input[i + skip];
-                this.Outputs[i] = this.Activation(this.Inputs[i]);
-            }
-            this.FeedEnd();
+            return this.SetInputGetOutput(input, 0);
         }
 
-        /// <summary>Creates a copy of this instance of the <code>NeuronsString</code> class.</summary>
-        /// <returns>The generated instance of the <code>NeuronsString</code> class.</returns>
-        public virtual object Clone()
+        public void UpdateWeights(double rate, double momentum = 0.0) { }
+        
+        public virtual IUntypedLayer CreateSiamese()
         {
-            return new NeuronsString(this.Length);
+            return new NeuronsString(this, true);
         }
 
-        /// <summary>Method to be called after every neuron of the layer has been feed.</summary>
-        public virtual void FeedEnd() { }
+        public virtual IUntypedLayer Clone()
+        {
+            return new NeuronsString(this, false);
+        }
     }
 }

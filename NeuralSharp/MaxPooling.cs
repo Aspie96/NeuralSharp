@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
@@ -29,30 +28,35 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     [DataContract]
-    public class LinearNeuronsString : NeuronsString
+    public class MaxPooling : Pooling
     {
-        protected LinearNeuronsString(LinearNeuronsString original, bool siamese) : base(original, siamese) { }
+        protected MaxPooling(MaxPooling original, bool siamese) : base(original, siamese) { }
 
-        public LinearNeuronsString(int length, bool createIO = false) : base(length, createIO) { }
+        public MaxPooling(int inputDepth, int inputWidth, int inputHeight, int xScale, int yScale, bool createIO = false) : base(inputDepth, inputWidth, inputHeight, xScale, yScale, createIO) { }
         
-        protected override double Activation(double input)
+        public override void Feed(bool learning = false)
         {
-            return input;
+            Backbone.ApplyMaxPool(this.Input.Raw, this.InputDepth, this.InputWidth, this.InputHeight, this.Output.Raw, this.OutputDepth, this.OutputWidth, this.OutputHeight, this.XScale, this.YScale);
         }
 
-        protected override double ActivationDerivative(double input, double output)
+        public override void BackPropagate(Image outputError, Image inputError, bool learning)
         {
-            return 1.0;
+            Backbone.BackpropagateMaxPool(this.Input.Raw, this.InputDepth, this.InputWidth, this.InputHeight, this.Output.Raw, this.OutputDepth, this.OutputWidth, this.OutputHeight, this.XScale, this.YScale, outputError.Raw, outputError.Depth, outputError.Width, outputError.Height, inputError.Raw, inputError.Depth, inputError.Width, inputError.Height, learning);
         }
 
         public override IUntypedLayer CreateSiamese()
         {
-            return new LinearNeuronsString(this, true);
+            return new MaxPooling(this, true);
         }
 
         public override IUntypedLayer Clone()
         {
-            return new LinearNeuronsString(this, false);
+            return new MaxPooling(this, false);
+        }
+
+        public override ILayer<Image, Image> CreateSiamese(bool createIO = false)
+        {
+            throw new NotImplementedException();
         }
     }
 }

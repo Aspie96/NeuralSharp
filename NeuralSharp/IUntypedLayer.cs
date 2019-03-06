@@ -26,10 +26,13 @@ using System.Threading.Tasks;
 
 namespace NeuralSharp
 {
-    public interface ILayer<TIn, TOut> : ILayerFrom<TIn>, ILayerTo<TOut> where TIn : class where TOut : class
+    public interface IUntypedLayer
     {
-        void BackPropagate(TOut outputError, TIn inputError, bool learning);
-        void SetInputAndOutput(TIn input, TOut output);
-        TOut SetInputGetOutput(TIn input);
+        int Parameters { get; }
+
+        void Feed(bool learning = false);
+        void UpdateWeights(double rate, double momentum = 0.0);
+        IUntypedLayer CreateSiamese();
+        IUntypedLayer Clone();
     }
 }

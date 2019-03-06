@@ -1,5 +1,5 @@
 ﻿/*
-    (C) 2018 Valentino Giudice
+    (C) 2019 Valentino Giudice
 
     This software is provided 'as-is', without any express or implied
     warranty. In no event will the authors be held liable for any damages
@@ -24,11 +24,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NeuralNetwork
+namespace NeuralSharp
 {
     internal static class RandomGenerator
     {
-        private static Random r = new Random();
+        private static Random r = new Random(220);
 
         public static double GetDouble()
         {
@@ -53,7 +53,13 @@ namespace NeuralNetwork
 
         public static double GetNormalNumber(double variance)
         {
+            //return RandomGenerator.r.NextDouble() * Math.Sqrt(variance * 12) - Math.Sqrt(variance * 3);
             return Math.Sqrt(variance) * Math.Sqrt(-2.0 * Math.Log(RandomGenerator.GetDouble())) * Math.Sin(2.0 * Math.PI * RandomGenerator.GetDouble());
+        }
+
+        public static int GetInt(int max)
+        {
+            return RandomGenerator.r.Next(max);
         }
     }
 }

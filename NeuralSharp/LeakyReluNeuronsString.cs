@@ -1,5 +1,5 @@
 ﻿/*
-    (C) 2018 Valentino Giudice
+    (C) 2019 Valentino Giudice
 
     This software is provided 'as-is', without any express or implied
     warranty. In no event will the authors be held liable for any damages
@@ -20,64 +20,53 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NeuralNetwork
+namespace NeuralSharp
 {
-    /// <summary>Represents a layer using the leaky relu activation function.</summary>
     [DataContract]
     public class LeakyReluNeuronsString : NeuronsString
     {
         [DataMember]
         private double alpha;
 
-        /// <summary>The parameter of the leaky relu.</summary>
+        protected LeakyReluNeuronsString(LeakyReluNeuronsString original, bool siamese) : base(original, siamese)
+        {
+            this.alpha = original.Alpha;
+        }
+
+        public LeakyReluNeuronsString(int length, double alpha, bool createIO = false) : base(length, createIO)
+        {
+            this.alpha = alpha;
+        }
+        
         public double Alpha
         {
             get { return this.alpha; }
         }
 
-        /// <summary>Creates a new instance of the <code>LeakyReluNeuronsString</code> class.</summary>
-        /// <param name="length">The lenght of the layer.</param>
-        /// <param name="alpha">The parameter of the leaky relu.</param>
-        public LeakyReluNeuronsString(int length, double alpha) : base(length)
-        {
-            this.alpha = alpha;
-        }
-
-        /// <summary>Returns the value of the activation function for a given input value.</summary>
-        /// <param name="input">The input to be given to the activation function.</param>
-        /// <returns>The output of the activation function.</returns>
         protected override double Activation(double input)
         {
-            if (input <= 0.0)
-            {
-                return this.alpha * input;
-            }
-            return input;
+            return (input < 0.0 ? input * this.Alpha : input);
         }
 
-        /// <summary>Returns the derivative of the activation function for the given input and output value.</summary>
-        /// <param name="input">The input value.</param>
-        /// <param name="output">The output value.</param>
-        /// <returns>The derviative of the activation function.</returns>
         protected override double ActivationDerivative(double input, double output)
         {
-            if (input <= 0.0)
-            {
-                return this.alpha;
-            }
-            return 1.0;
+            return (output > 0.0 ? 1.0 : this.Alpha);
         }
 
-        /// <summary>Creates a copy of this instance of the <code>LeakyReluNeuronsString</code> class.</summary>
-        /// <returns>The generated instance of the <code>LeakyReluNeuronsString</code> class.</returns>
-        public override object Clone()
+        public override IUntypedLayer CreateSiamese()
         {
-            return new LeakyReluNeuronsString(this.Length, this.Alpha);
+            return new LeakyReluNeuronsString(this, true);
+        }
+
+        public override IUntypedLayer Clone()
+        {
+            return new LeakyReluNeuronsString(this, false);
         }
     }
 }

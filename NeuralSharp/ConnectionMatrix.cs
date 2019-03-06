@@ -1,5 +1,5 @@
 ﻿/*
-    (C) 2018 Valentino Giudice
+    (C) 2019 Valentino Giudice
 
     This software is provided 'as-is', without any express or implied
     warranty. In no event will the authors be held liable for any damages
@@ -25,205 +25,238 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NeuralNetwork
+namespace NeuralSharp
 {
-    /// <summary>Represents a matrix of axons between two neurons layers.</summary>
+    /// <summary>Represents a connection matrix.</summary>
     [DataContract]
-    public class ConnectionMatrix : IConnectionMatrix
+    public class ConnectionMatrix : IArraysLayer
     {
+        private double[] input;
+        private double[] output;
+        private int inputSkip;
+        private int outputSkip;
+        [DataMember]
+        private int inputSize;
+        [DataMember]
+        private int outputSize;
         private double[,] weights;
-        private ILayer layer1;
-        private ILayer layer2;
-        private double[] flatWeights;
-        [DataMember]
-        private int inputs;
-        [DataMember]
-        private int outputs;
-        private double[,] deltas;
+        private double[,] gradients;
+        private double[,] momentum;
 
-        /// <summary>Empty constructor. It does not initialize the fields.</summary>
-        protected ConnectionMatrix() { }
-
-        /// <summary>Creates a new instance of the <code>ConnectionMatrix</code> class.</summary>
-        /// <param name="layer1">The input layer of the connection matrix.</param>
-        /// <param name="layer2">The output layer of the connection matrix.</param>
-        public ConnectionMatrix(ILayer layer1, ILayer layer2)
+        /// <summary>Either creates a siamese of the given <code>ConnectionMatrix</code> instance or clones it.</summary>
+        /// <param name="original">The original instance to be created a siamese of or cloned.</param>
+        /// <param name="siamese"><code>true</code> if a siamese is to be created, <code>false</code> if a clone is.</param>
+        protected ConnectionMatrix(ConnectionMatrix original, bool siamese)
         {
-            this.inputs = layer1.Length;
-            this.outputs = layer2.Length;
-            this.layer1 = layer1;
-            this.layer2 = layer2;
-            this.weights = new double[layer1.Length, layer2.Length];
-            this.deltas = new double[layer1.Length, layer2.Length];
-            double variance = 2.0 / (this.Inputs + this.Outputs);
-            for (int i = 0; i < this.inputs; i++)
+            this.inputSize = original.InputSize;
+            this.outputSize = original.OutputSize;
+            if (siamese)
             {
-                for (int j = 0; j < this.Outputs; j++)
-                {
-                    this.weights[i, j] = RandomGenerator.GetNormalNumber(variance);
-                }
+                this.weights = original.Weights;
+                this.gradients = original.Gradients;
+                this.momentum = original.Momentum;
+            }
+            else
+            {
+                this.weights = Backbone.CreateArray<double>(original.InputSize, original.OutputSize);
+                Backbone.RandomizeMatrix(this.weights, original.InputSize, original.OutputSize, 2.0 / (original.InputSize + original.OutputSize));
+                this.gradients = Backbone.CreateArray<double>(original.InputSize, original.OutputSize);
+                this.momentum = Backbone.CreateArray<double>(original.InputSize, original.OutputSize);
             }
         }
-        
-        /// <summary>The lenght of the input layer of this connection matrix.</summary>
-        public int Inputs
-        {
-            get { return this.inputs; }
-        }
 
-        /// <summary>The lenght of the output layer of this connection matrix.</summary>
-        public int Outputs
+        /// <summary>Creates an instance of the <code>ConnectionMatrix</code> class.</summary>
+        /// <param name="inputSize">The size of the input of the layer.</param>
+        /// <param name="outputSize">The size of the output of the layer.</param>
+        /// <param name="createIO">Whether the input array and the output array of the layer are to be created./param>
+        public ConnectionMatrix(int inputSize, int outputSize, bool createIO = false)
         {
-            get { return this.outputs; }
+            if (createIO)
+            {
+                this.input = Backbone.CreateArray<double>(inputSize);
+                this.output = Backbone.CreateArray<double>(outputSize);
+                this.inputSkip = 0;
+                this.outputSkip = 0;
+            }
+            this.inputSize = inputSize;
+            this.outputSize = outputSize;
+            this.weights = Backbone.CreateArray<double>(inputSize, outputSize);
+            Backbone.RandomizeMatrix(this.weights, inputSize, outputSize, 2.0 / (inputSize + outputSize));
+            this.gradients = Backbone.CreateArray<double>(inputSize, outputSize);
+            this.momentum = Backbone.CreateArray<double>(inputSize, outputSize);
         }
 
         [DataMember]
-        private double[] FlatWeights
+        private double[] SerWeights
         {
             get
             {
-                double[] retVal = new double[this.weights.Length];
-                Buffer.BlockCopy(this.weights, 0, retVal, 0, sizeof(double) * this.weights.Length);
+                double[] retVal = new double[this.Weights.Length];
+                Backbone.MatrixToArray(this.Weights, this.InputSize, this.OutputSize, retVal, 0);
                 return retVal;
             }
-            set { this.flatWeights = value; }
+            set
+            {
+                this.weights = Backbone.CreateArray<double>(this.InputSize, this.OutputSize);
+                Backbone.ArrayToMatrix(value, 0, this.weights, this.InputSize, this.OutputSize);
+            }
         }
         
-        /// <summary>The input layer of this connection matrix.</summary>
-        public ILayer Layer1
+        [OnDeserialized]
+        private void SetValuesOnDeserialized(StreamingContext context)
         {
-            get { return this.layer1; }
+            this.gradients = Backbone.CreateArray<double>(this.InputSize, this.OutputSize);
+            this.momentum = Backbone.CreateArray<double>(this.InputSize, this.OutputSize);
         }
 
-        /// <summary>The output layer of this connection matrix.</summary>
-        public ILayer Layer2
+        /// <summary>The input array of the layer.</summary>
+        public double[] Input
         {
-            get { return this.layer2; }
+            get { return this.input; }
+        }
+        
+        /// <summary>The output array of the layer.</summary>
+        public double[] Output
+        {
+            get { return this.output; }
         }
 
-        /// <summary>The weights of this connection matrix.</summary>
+        /// <summary>The index of the first used entry of the input array.</summary>
+        public int InputSkip
+        {
+            get { return this.inputSkip; }
+        }
+
+        /// <summary>The index of the first used entry of the output array.</summary>
+        public int OutputSkip
+        {
+            get { return this.outputSkip; }
+        }
+
+        /// <summary>The size of the output of the layer.</summary>
+        public int InputSize
+        {
+            get { return this.inputSize; }
+        }
+
+        /// <summary>The size of the output of the layer.</summary>
+        public int OutputSize
+        {
+            get { return this.outputSize; }
+        }
+
+        /// <summary>The weights of the layer.</summary>
         protected double[,] Weights
         {
             get { return this.weights; }
         }
 
-        /// <summary>The stored weight gradients.</summary>
-        protected double[,] Deltas
+        /// <summary>The gradients of the layer.</summary>
+        protected double[,] Gradients
         {
-            get { return this.deltas; }
+            get { return this.gradients; }
+        }
+
+        /// <summary>The previous updates of the layer.</summary>
+        protected double[,] Momentum
+        {
+            get { return this.momentum; }
         }
         
-        /// <summary>The amount of weights in this connection matrix.</summary>
-        public int Params
+        /// <summary>The amount of parameters of the layer.</summary>
+        public virtual int Parameters
         {
             get { return this.weights.Length; }
         }
-
-        /// <summary>Sets the input and the output layer for this connection matrix. Only to be used when strictly necessary.</summary>
-        /// <param name="layer1">The input layer to be set.</param>
-        /// <param name="layer2">The output layer to be set.</param>
-        public void SetLayers(ILayer layer1, ILayer layer2)
+        
+        /// <summary>Feeds the layer forward.</summary>
+        /// <param name="learning">Whether the layer is being used in a training session. Unused.</param>
+        public virtual void Feed(bool learning = false)
         {
-            this.layer1 = layer1;
-            this.layer2 = layer2;
+            Backbone.ApplyConnectionMatrix(this.Input, this.InputSkip, this.InputSize, this.Output, this.OutputSkip, this.OutputSize, this.Weights);
+        }
+        
+        /// <summary>Backpropagates the given error trough the layer.</summary>
+        /// <param name="outputErrorArray">The output error to be backpropagated.</param>
+        /// <param name="outputErrorSkip">The index of the first entry of the ouptut error array to be used.</param>
+        /// <param name="inputErrorArray">The array to be written the input entry into.</param>
+        /// <param name="inputErrorSkip">The index of the first entry of the input error array to be used.</param>
+        /// <param name="learning">Whether the array is being used in a training session.</param>
+        public virtual void BackPropagate(double[] outputErrorArray, int outputErrorSkip, double[] inputErrorArray, int inputErrorSkip, bool learning)
+        {
+            Backbone.BackpropagateConnectionMatrix(this.Input, this.InputSkip, this.InputSize, this.Output, this.OutputSkip, this.OutputSize, this.Weights, outputErrorArray, outputErrorSkip, inputErrorArray, inputErrorSkip, this.Gradients, learning);
         }
 
-        /// <summary>Feeds the output of the input layer trough this connection matrix into the output layer.</summary>
-        public virtual void Feed()
+        /// <summary>Backpropagates the given error trough the layer.</summary>
+        /// <param name="outputError">The output error to be backpropagated.</param>
+        /// <param name="inputError">The array to be written the input error into.</param>
+        /// <param name="learning">Whether the array is being used in a training session.</param>
+        public void BackPropagate(double[] outputError, double[] inputError, bool learning)
         {
-            for (int i = 0; i < this.Layer2.Length; i++)
-            {
-                double sum = 0.0;
-                for (int j = 0; j < this.Layer1.Length; j++)
-                {
-                    sum += this.Weights[j, i] * this.Layer1.GetLastOutput(j);
-                }
-                this.Layer2.Feed(i, sum);
-            }
-            this.Layer2.FeedEnd();
+            this.BackPropagate(outputError, 0, inputError, 0, learning);
         }
 
-        /// <summary>Backpropagates the given error trough this connection matrix, updating its weights.</summary>
-        /// <param name="error2">The error array to be backpropagated. It will be modified by being backpropagated trough the output layer.</param>
-        /// <param name="error1">The array to be written the error of the input layer into.</param>
-        /// <param name="rate">The learning rate at which the weights are to be updated.</param>
-        public virtual void BackPropagate(double[] error2, double[] error1, double rate)
+        /// <summary>Sets the input array and the output array of this layer.</summary>
+        /// <param name="inputArray">The input array to be set.</param>
+        /// <param name="inputSkip">The index of the first entry of the input array to be used.</param>
+        /// <param name="outputArray">The output array to be set.</param>
+        /// <param name="outputSkip">The index of the first entry of the output array to be used.</param>
+        public void SetInputAndOutput(double[] inputArray, int inputSkip, double[] outputArray, int outputSkip)
         {
-            this.Layer2.BackPropagate(error2);
-            for (int i = 0; i < this.Inputs; i++)
-            {
-                error1[i] = 0;
-                for (int j = 0; j < this.Outputs; j++)
-                {
-                    error1[i] += (int)(error2[j] * this.Weights[i, j] * 1000) / 1000.0;
-                    this.Weights[i, j] += (int)(rate * this.Layer1.GetLastOutput(i) * error2[j] * 1000) / 1000.0;
-                }
-            }
+            this.input = inputArray;
+            this.output = outputArray;
+            this.inputSkip = inputSkip;
+            this.outputSkip = outputSkip;
         }
 
-        /// <summary>Backpropagates the given error trough the network and stores the sums the weight gradients to their stored values.</summary>
-        /// <param name="error2">The error array to be backpropagated. It will be modified by being backpropagated trough the output layer.</param>
-        /// <param name="error1">The array to be written the error of the input layer into.</param>
-        public virtual void BackPropagateToDeltas(double[] error2, double[] error1)
+        /// <summary>Sets the input array and the ouptut array of this layer.</summary>
+        /// <param name="input">The input array to be set.</param>
+        /// <param name="output">The output array to be set.</param>
+        public void SetInputAndOutput(double[] input, double[] output)
         {
-            this.Layer2.BackPropagate(error2);
-            for (int i = 0; i < this.Inputs; i++)
-            {
-                error1[i] = 0;
-                for (int j = 0; j < this.Outputs; j++)
-                {
-                    error1[i] += error2[j] * this.Weights[i, j];
-                    this.Deltas[i, j] += this.Layer1.GetLastOutput(i) * error2[j];
-                }
-            }
+            this.SetInputAndOutput(input, 0, output, 0);
         }
 
-        /// <summary>Updates the weights using the stored weight gradients and sets the stored gradients to <code>0</code>.</summary>
-        /// <param name="rate">The learning rate at which to the weights are to be updated.</param>
-        public virtual void ApplyDeltas(double rate)
+        /// <summary>Sets the input array of this layer and creates and sets an output array.</summary>
+        /// <param name="inputArray">The input array to be set.</param>
+        /// <param name="inputSkip">The index of the first entry of the input array to be used.</param>
+        /// <returns>The created output array.</returns>
+        public double[] SetInputGetOutput(double[] inputArray, int inputSkip)
         {
-            for (int i = 0; i < this.Inputs; i++)
-            {
-                for (int j = 0; j < this.Outputs; j++)
-                {
-                    this.Weights[i, j] += this.Deltas[i, j] * rate;
-                    this.Deltas[i, j] = 0.0;
-                }
-            }
+            this.input = inputArray;
+            this.inputSkip = inputSkip;
+            this.outputSkip = 0;
+            return this.output = Backbone.CreateArray<double>(this.OutputSize);
         }
 
-        [OnDeserialized]
-        private void SetValuesOnDeserialized(StreamingContext context)
+        /// <summary>Sets the input array of this layer and creates and sets an output array.</summary>
+        /// <param name="input">The input array to be set.</param>
+        /// <returns>The created outptu array.</returns>
+        public double[] SetInputGetOutput(double[] input)
         {
-            this.weights = new double[this.Inputs, this.Outputs];
-            this.deltas = new double[this.Inputs, this.Outputs];
-            Buffer.BlockCopy(this.flatWeights, 0, this.Weights, 0, sizeof(double) * this.flatWeights.Length);
-            this.FlatWeights = null;
+            return this.SetInputGetOutput(input, 0);
+        }
+        
+        /// <summary>Updates the weights of the layer.</summary>
+        /// <param name="rate">The learning rate to be used.</param>
+        /// <param name="momentum">The momentum to be used.</param>
+        public virtual void UpdateWeights(double rate, double momentum = 0.0)
+        {
+            Backbone.UpdateConnectionMatrix(this.Weights, this.Gradients, this.Momentum, this.InputSize, this.OutputSize, rate, momentum);
+        }
+        
+        /// <summary>Creates a siamese of the layer.</summary>
+        /// <returns>The created instance of the <code>ConnectionMatrix</code> class.</returns>
+        public virtual IUntypedLayer CreateSiamese()
+        {
+            return new ConnectionMatrix(this, true);
         }
 
-        /// <summary>Copises this instance of the <code>ConnectionMatrix</code> class into another.</summary>
-        /// <param name="connectionMatrix">The connection matrix to be copied into.</param>
-        /// <param name="layer1">The input layer of the copied instance.</param>
-        /// <param name="layer2">The output layer of the copied instance.</param>
-        protected virtual void CloneTo(ConnectionMatrix connectionMatrix, ILayer layer1, ILayer layer2)
+        /// <summary>Creates a clone of the layer.</summary>
+        /// <returns>The created instance of the <code>ConnectionMatrix</code> class.</returns>
+        public virtual IUntypedLayer Clone()
         {
-            connectionMatrix.inputs = layer1.Length;
-            connectionMatrix.outputs = layer2.Length;
-            connectionMatrix.layer1 = layer1;
-            connectionMatrix.layer2 = layer2;
-            connectionMatrix.weights = (double[,])this.Weights.Clone();
-            connectionMatrix.deltas = new double[layer1.Length, layer2.Length];
-        }
-
-        /// <summary>Creates a copy of this instance of the <code>ConnectionMatrix</code> class.</summary>
-        /// <param name="layer1">The input layer of the new instance.</param>
-        /// <param name="layer2">The output layer of the new instance.</param>
-        /// <returns>The generated instance of the <code>ConnectionMatrix</code> class.</returns>
-        public virtual IConnectionMatrix Clone(ILayer layer1, ILayer layer2)
-        {
-            ConnectionMatrix retVal = new ConnectionMatrix();
-            this.CloneTo(retVal, layer1, layer2);
-            return retVal;
+            return new ConnectionMatrix(this, false);
         }
     }
 }

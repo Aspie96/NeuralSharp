@@ -1,5 +1,5 @@
 ﻿/*
-    (C) 2018 Valentino Giudice
+    (C) 2019 Valentino Giudice
 
     This software is provided 'as-is', without any express or implied
     warranty. In no event will the authors be held liable for any damages
@@ -18,117 +18,100 @@
     3. This notice may not be removed or altered from any source distribution.
 */
 
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace NeuralNetwork
+namespace NeuralSharp
 {
-    /// <summary>Represents a connection matrix with a bias neuron.</summary>
+    /// <summary>Represents a connection matrix which uses bias.</summary>
     [DataContract]
     public class BiasedConnectionMatrix : ConnectionMatrix
     {
         [DataMember]
         private double[] biases;
-        private double[] biasDeltas;
-
-        /// <summary>Empty constructor. It does not initialize the fields.</summary>
-        protected BiasedConnectionMatrix() { }
-
-        /// <summary>Creates a new instance of the <code>BiasedConnectionMatrix</code> class.</summary>
-        /// <param name="layer1">The input layer of the connection matrix.</param>
-        /// <param name="layer2">The output layer of the connection matrix.</param>
-        public BiasedConnectionMatrix(ILayer layer1, ILayer layer2) : base(layer1, layer2)
+        private double[] biasGradients;
+        private double[] biasMomentum;
+        
+        /// <summary>Either creates a siamese of the given <code>BiasedConnectionMatrix</code> instance or clones it.</summary>
+        /// <param name="original">The original instance to be created a siamese of or cloned.</param>
+        /// <param name="siamese"><code>true</code> if a siamese is to be created, <code>false</code> if a clone is.</param>
+        protected BiasedConnectionMatrix(BiasedConnectionMatrix original, bool siamese) : base(original, siamese)
         {
-            this.biases = new double[layer2.Length];
-            this.biasDeltas = new double[layer2.Length];
-            double variance = 2.0 / (this.Inputs + this.Outputs);
-            for (int i = 0; i < biases.Length; i++)
+            if (siamese)
             {
-                biases[i] = RandomGenerator.GetNormalNumber(variance);
+                this.biases = original.biases;
+                this.biasGradients = original.biasGradients;
+                this.biasMomentum = original.biasMomentum;
+            }
+            else
+            {
+                this.biases = Backbone.CreateArray<double>(original.OutputSize);
+                this.biasGradients = Backbone.CreateArray<double>(original.OutputSize);
+                this.biasMomentum = Backbone.CreateArray<double>(original.OutputSize);
             }
         }
 
-        /// <summary>Backpropagates the given error trough this connection matrix, updating its weights.</summary>
-        /// <param name="error2">The error array to be backpropagated. It will be modified by being backpropagated trough the output layer.</param>
-        /// <param name="error1">The array to be written the error of the input layer into.</param>
-        /// <param name="rate">The learning rate at which the weights are to be updated.</param>
-        public override void BackPropagate(double[] error2, double[] error1, double rate)
+        /// <summary>Creates an instance of the <code>BiasedConnectionMatrix</code> class.</summary>
+        /// <param name="inputSize">The length of the input of the layer.</param>
+        /// <param name="outputSize">The lenght of the output of the layer.</param>
+        /// <param name="createIO">Whether the input array and the output array are to be created.</param>
+        public BiasedConnectionMatrix(int inputSize, int outputSize, bool createIO = false) : base(inputSize, outputSize, createIO)
         {
-            base.BackPropagate(error2, error1, rate);
-            if (rate != 0.0)
-            {
-                for (int i = 0; i < this.Outputs; i++)
-                {
-                    this.biases[i] += rate * error2[i];
-                }
-            }
-        }
-
-        /// <summary>Backpropagates the given error trough the network and stores the sums the weight gradients to their stored values.</summary>
-        /// <param name="error2">The error array to be backpropagated. It will be modified by being backpropagated trough the output layer.</param>
-        /// <param name="error1">The array to be written the error of the input layer into.</param>
-        public override void BackPropagateToDeltas(double[] error2, double[] error1)
-        {
-            base.BackPropagateToDeltas(error2, error1);
-            for (int i = 0; i < this.Outputs; i++)
-            {
-                this.biasDeltas[i] += error2[i];
-            }
-        }
-
-        /// <summary>Feeds the output of the input layer trough this connection matrix into the output layer.</summary>
-        public override void Feed()
-        {
-            for (int i = 0; i < this.Layer2.Length; i++)
-            {
-                double sum = 0.0;
-                for (int j = 0; j < this.Layer1.Length; j++)
-                {
-                    sum += this.Weights[j, i] * this.Layer1.GetLastOutput(j);
-                }
-                sum += this.biases[i];
-                this.Layer2.Feed(i, sum);
-            }
-            this.Layer2.FeedEnd();
-        }
-
-        /// <summary>Updates the weights using the stored weight gradients and sets the stored gradients to <code>0</code>.</summary>
-        /// <param name="rate">The learning rate at which to the weights are to be updated.</param>
-        public override void ApplyDeltas(double rate)
-        {
-            base.ApplyDeltas(rate);
-            for (int i = 0; i < this.Outputs; i++)
-            {
-                this.biases[i] += this.biasDeltas[i] * rate;
-                this.biasDeltas[i] = 0;
-            }
+            this.biases = Backbone.CreateArray<double>(this.OutputSize);
+            this.biasGradients = Backbone.CreateArray<double>(this.OutputSize);
+            this.biasMomentum = Backbone.CreateArray<double>(this.OutputSize);
         }
 
         [OnDeserialized]
         private void SetValuesOnDeserialized(StreamingContext context)
         {
-            this.biasDeltas = new double[this.Outputs];
+            this.biasGradients = Backbone.CreateArray<double>(this.OutputSize);
+            this.biasMomentum = Backbone.CreateArray<double>(this.OutputSize);
         }
 
-        /// <summary>Copises this instance of the <code>BiasedConnectionMatrix</code> class into another.</summary>
-        /// <param name="connectionMatrix">The connection matrix to be copied into.</param>
-        /// <param name="layer1">The input layer of the copied instance.</param>
-        /// <param name="layer2">The output layer of the copied instance.</param>
-        protected void CloneTo(BiasedConnectionMatrix connectionMatrix, ILayer layer1, ILayer layer2)
+        /// <summary>Feeds the layer forward.</summary>
+        /// <param name="learning">Whether the layer is being used in a training session. Unused.</param>
+        public override void Feed(bool learning = false)
         {
-            base.CloneTo(connectionMatrix, layer1, layer2);
-            connectionMatrix.biases = (double[])this.biases.Clone();
-            connectionMatrix.biasDeltas = new double[layer2.Length];
+            Backbone.ApplyBiasedConnectionMatrix(this.Input, this.InputSkip, this.InputSize, this.Output, this.OutputSkip, this.OutputSize, this.Weights, this.biases);
         }
 
-        /// <summary>Creates a copy of this instance of the <code>BiasedConnectionMatrix</code> class.</summary>
-        /// <param name="layer1">The input layer of the new instance.</param>
-        /// <param name="layer2">The output layer of the new instance.</param>
-        /// <returns>The generated instance of the <code>BiasedConnectionMatrix</code> class.</returns>
-        public override IConnectionMatrix Clone(ILayer layer1, ILayer layer2)
+        /// <summary>Backpropagates the given error trough the layer.</summary>
+        /// <param name="outputErrorArray">The output error to be backpropagated.</param>
+        /// <param name="outputErrorSkip">The index of the first position of the output error array to be used.</param>
+        /// <param name="inputErrorArray">The array to be written the input error into.</param>
+        /// <param name="inputErrorSkip">The index of the first position of the input error array to be used.</param>
+        /// <param name="learning"></param>
+        public override void BackPropagate(double[] outputErrorArray, int outputErrorSkip, double[] inputErrorArray, int inputErrorSkip, bool learning)
         {
-            BiasedConnectionMatrix retVal = new BiasedConnectionMatrix();
-            this.CloneTo(retVal, layer1, layer2);
-            return retVal;
+            Backbone.BackpropagateBiasedConnectionMatrix(this.Input, this.InputSkip, this.InputSize, this.Output, this.OutputSkip, this.OutputSize, this.Weights, this.biases, outputErrorArray, outputErrorSkip, inputErrorArray, inputErrorSkip, this.Gradients, this.biasGradients, learning);
+        }
+        
+        /// <summary>Updates the weights of the layer.</summary>
+        /// <param name="rate">The learning rate to be used.</param>
+        /// <param name="momentum">The momentum to be used.</param>
+        public override void UpdateWeights(double rate, double momentum = 0)
+        {
+            Backbone.UpdateBiasedConnectionMatrix(Weights, Gradients, Momentum, biases, biasGradients, this.biasMomentum, InputSize, OutputSize, rate, momentum);
+        }
+
+        /// <summary>Creates a siamese of the layer.</summary>
+        /// <returns>The created instance of the <code>BiasedConnectionMatrix</code> class.</returns>
+        public override IUntypedLayer CreateSiamese()
+        {
+            return new BiasedConnectionMatrix(this, true);
+        }
+
+        /// <summary>Creates a clone of the layer.</summary>
+        /// <returns>The created instance of the <code>BiasedConnectionMatrix</code> class.</returns>
+        public override IUntypedLayer Clone()
+        {
+            return new BiasedConnectionMatrix(this, false);
         }
     }
 }
