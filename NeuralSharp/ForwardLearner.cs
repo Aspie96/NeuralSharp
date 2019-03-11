@@ -77,10 +77,6 @@ namespace NeuralSharp
         /// <param name="learning">Whether the learner is being used in a training session.</param>
         /// <returns>The error of the learner.</returns>
         public abstract double FeedAndGetError(TIn input, TOut expectedOutput, TOut error, bool learning);
-
-        /// <summary>Exports the leaner to a stream.</summary>
-        /// <param name="stream">The stream to be exported the learner into.</param>
-        public abstract void Save(Stream stream);
         
         /// <summary>Gets the best parameters during training.</summary>
         /// <param name="batchSize">The batch size.</param>
@@ -135,15 +131,6 @@ namespace NeuralSharp
                 Console.WriteLine(errorValue + " " + epoch);
             } while (epoch < maxSteps && errorValue > maxError);
             return errorValue;
-        }
-
-        /// <summary>Exports the learner to a file.</summary>
-        /// <param name="fileName">The name of the file to be exported the learner into.</param>
-        public virtual void Save(string fileName)
-        {
-            FileStream fs = new FileStream(fileName, FileMode.Create);
-            this.Save(fs);
-            fs.Close();
         }
     }
 }

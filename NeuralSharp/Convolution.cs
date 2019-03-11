@@ -28,35 +28,24 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents a convolution operation.</summary>
-    [DataContract]
     public class Convolution : IImagesLayer
     {
         private Image input;
         private Image output;
-        [DataMember]
         private int inputDepth;
-        [DataMember]
         private int inputWidth;
-        [DataMember]
         private int inputHeight;
-        [DataMember]
         private int outputDepth;
-        [DataMember]
         private int outputWidth;
-        [DataMember]
         private int outputHeight;
         private float[,] kernelFilters;
-        [DataMember]
         private float[] biases;
         private float[] biasesDeltas;
         private float[,] kernelGradients;
         private float[,] kernelMomentums;
         private float[] biasesMomentums;
-        [DataMember]
         private int kernelSide;
-        [DataMember]
         private int stride;
-        [DataMember]
         private int padding;
 
         /// <summary>Either creates a siamese of the given <code>Convolution</code> instance or clones it.</summary>
@@ -137,7 +126,6 @@ namespace NeuralSharp
             this.stride = stride;
         }
         
-        [DataMember]
         private float[] SerKernelFilters
         {
             get
@@ -219,14 +207,7 @@ namespace NeuralSharp
         {
             get { return this.kernelFilters.Length * this.KernelSide * this.KernelSide; }
         }
-
-        [OnDeserialized]
-        private void SetValuesOnDeserialized(StreamingContext context)
-        {
-            this.kernelGradients = Backbone.CreateArray<float>(this.OutputDepth, this.InputDepth * this.KernelSide * this.KernelSide);
-            this.kernelMomentums = Backbone.CreateArray<float>(this.OutputDepth, this.InputDepth * this.KernelSide * this.KernelSide);
-        }
-
+        
         /// <summary>The activation function used by the layer.</summary>
         /// <param name="input">The input of the activation function.</param>
         /// <returns>The output of the activation function.</returns>

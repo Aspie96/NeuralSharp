@@ -31,7 +31,6 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents a feed forward neural network.</summary>
-    [DataContract]
     public class FeedForwardNN : Sequential<double[], double[]>, IArraysLayer
     {
         private double[] error1;
@@ -277,47 +276,73 @@ namespace NeuralSharp
             return this.FeedAndGetError(input, 0, expectedOutput, 0, error, 0, learning);
         }
 
+        /// <summary>Sets the input array and the output array of the network.</summary>
+        /// <param name="input">The input array to be set.</param>
+        /// <param name="output">The output array to be set.</param>
         public override void SetInputAndOutput(double[] input, double[] output)
         {
-            throw new NotImplementedException();
+            if (this.layersConnected)
+            {
+                ((IArraysLayer)this.Layers.First()).SetInputAndOutput(input, ((IArraysLayer)this.Layers.First()).Output);
+                ((IArraysLayer)this.Layers.Last()).SetInputAndOutput(((IArraysLayer)this.Layers.Last()).Input, output);
+            }
+            else
+            {
+                double[] array = input;
+                for (int i = 0; i < this.Layers.Count - 1; i++)
+                {
+                    array = ((IArraysLayer)this.Layers[i]).SetInputGetOutput(array);
+                }
+                ((IArraysLayer)this.Layers.Last()).SetInputAndOutput(array, output);
+            }
         }
 
+        /// <summary>Sets the input array of the network and creates and sets the output array.</summary>
+        /// <param name="input">The input array to be set.</param>
+        /// <returns>The created output array.</returns>
         public override double[] SetInputGetOutput(double[] input)
         {
-            throw new NotImplementedException();
+            double[] retVal = new double[this.OutputSize];
+            this.SetInputAndOutput(input, retVal);
+            return retVal;
         }
 
+        /// <summary>Creates a siamese of the network.</summary>
+        /// <returns>The created siamese.</returns>
         public override IUntypedLayer CreateSiamese()
         {
-            throw new NotImplementedException();
+            return new FeedForwardNN(this, true);
         }
 
+        /// <summary>Creates a clone of the network.</summary>
+        /// <returns>The created clone.</returns>
         public override IUntypedLayer Clone()
         {
-            throw new NotImplementedException();
+            return new FeedForwardNN(this, false);
         }
 
+        /// <summary>Adds a top layer to the network.</summary>
+        /// <param name="layer">The layer to be added.</param>
         protected override void AddTopLayer(ILayer<double[], double[]> layer)
         {
-            throw new NotImplementedException();
+            this.Layers.Insert(0, layer);
         }
 
+        /// <summary>Adds a bottom layer to the network.</summary>
+        /// <param name="layer">The layer to be added.</param>
         protected override void AddBottomLayer(ILayer<double[], double[]> layer)
         {
-            throw new NotImplementedException();
+            this.Layers.Add(layer);
         }
 
+        /// <summary>Removes a top layer.</summary>
         protected override void RemoveTopLayer()
         {
-            throw new NotImplementedException();
+            this.Layers.RemoveAt(0);
         }
 
+        /// <summary>Removes a bottom layer.</summary>
         protected override void RemoveBottomLayer()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Save(Stream stream)
         {
             throw new NotImplementedException();
         }

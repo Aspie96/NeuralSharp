@@ -29,10 +29,8 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents a connection matrix which uses bias.</summary>
-    [DataContract]
     public class BiasedConnectionMatrix : ConnectionMatrix
     {
-        [DataMember]
         private double[] biases;
         private double[] biasGradients;
         private double[] biasMomentum;
@@ -66,14 +64,7 @@ namespace NeuralSharp
             this.biasGradients = Backbone.CreateArray<double>(this.OutputSize);
             this.biasMomentum = Backbone.CreateArray<double>(this.OutputSize);
         }
-
-        [OnDeserialized]
-        private void SetValuesOnDeserialized(StreamingContext context)
-        {
-            this.biasGradients = Backbone.CreateArray<double>(this.OutputSize);
-            this.biasMomentum = Backbone.CreateArray<double>(this.OutputSize);
-        }
-
+        
         /// <summary>Feeds the layer forward.</summary>
         /// <param name="learning">Whether the layer is being used in a training session. Unused.</param>
         public override void Feed(bool learning = false)

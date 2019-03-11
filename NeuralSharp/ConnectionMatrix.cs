@@ -28,16 +28,13 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents a connection matrix.</summary>
-    [DataContract]
     public class ConnectionMatrix : IArraysLayer
     {
         private double[] input;
         private double[] output;
         private int inputSkip;
         private int outputSkip;
-        [DataMember]
         private int inputSize;
-        [DataMember]
         private int outputSize;
         private double[,] weights;
         private double[,] gradients;
@@ -68,7 +65,7 @@ namespace NeuralSharp
         /// <summary>Creates an instance of the <code>ConnectionMatrix</code> class.</summary>
         /// <param name="inputSize">The size of the input of the layer.</param>
         /// <param name="outputSize">The size of the output of the layer.</param>
-        /// <param name="createIO">Whether the input array and the output array of the layer are to be created./param>
+        /// <param name="createIO">Whether the input array and the output array of the layer are to be created.</param>
         public ConnectionMatrix(int inputSize, int outputSize, bool createIO = false)
         {
             if (createIO)
@@ -85,30 +82,7 @@ namespace NeuralSharp
             this.gradients = Backbone.CreateArray<double>(inputSize, outputSize);
             this.momentum = Backbone.CreateArray<double>(inputSize, outputSize);
         }
-
-        [DataMember]
-        private double[] SerWeights
-        {
-            get
-            {
-                double[] retVal = new double[this.Weights.Length];
-                Backbone.MatrixToArray(this.Weights, this.InputSize, this.OutputSize, retVal, 0);
-                return retVal;
-            }
-            set
-            {
-                this.weights = Backbone.CreateArray<double>(this.InputSize, this.OutputSize);
-                Backbone.ArrayToMatrix(value, 0, this.weights, this.InputSize, this.OutputSize);
-            }
-        }
         
-        [OnDeserialized]
-        private void SetValuesOnDeserialized(StreamingContext context)
-        {
-            this.gradients = Backbone.CreateArray<double>(this.InputSize, this.OutputSize);
-            this.momentum = Backbone.CreateArray<double>(this.InputSize, this.OutputSize);
-        }
-
         /// <summary>The input array of the layer.</summary>
         public double[] Input
         {

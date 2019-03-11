@@ -26,8 +26,11 @@ using System.Threading.Tasks;
 
 namespace NeuralSharp
 {
+    /// <summary>Represents a layer of known output type.</summary>
+    /// <typeparam name="T">The output type of the layer.</typeparam>
     public interface ILayerTo<T> : IUntypedLayer where T : class
     {
+        /// <summary>The output object of the layer.</summary>
         T Output { get; }
     }
 }

@@ -27,28 +27,23 @@ using System.Threading.Tasks;
 
 namespace NeuralSharp
 {
-    [DataContract]
+    /// <summary>Represents a pooling layer.</summary>
     public abstract class Pooling : IImagesLayer
     {
         private Image input;
         private Image output;
-        [DataMember]
         private int inputDepth;
-        [DataMember]
         private int inputWidth;
-        [DataMember]
         private int inputHeight;
-        [DataMember]
         private int outputDepth;
-        [DataMember]
         private int outputWidth;
-        [DataMember]
         private int outputHeight;
-        [DataMember]
         private int xScale;
-        [DataMember]
         private int yScale;
         
+        /// <summary>Either creates a siamese of the given <code>Pooling</code> instance or clones it.</summary>
+        /// <param name="original">The original instance to be created a siamese of or cloned.</param>
+        /// <param name="siamese"><code>true</code> if a siamese is to be crated, <code>false</code> if a clone is.</param>
         protected Pooling(Pooling original, bool siamese)
         {
             this.inputDepth = original.InputDepth;
@@ -61,6 +56,13 @@ namespace NeuralSharp
             this.yScale = original.YScale;
         }
 
+        /// <summary>Creates an instance of the <code>Pooling</code> class.</summary>
+        /// <param name="inputDepth">The depth of the input.</param>
+        /// <param name="inputWidth">The width of the input.</param>
+        /// <param name="inputHeight">The height of the input.</param>
+        /// <param name="xScale">The X scale factor.</param>
+        /// <param name="yScale">The Y scale factor.</param>
+        /// <param name="createIO">Whether the input image and the output image are to be created.</param>
         public Pooling(int inputDepth, int inputWidth, int inputHeight, int xScale, int yScale, bool createIO = false)
         {
             this.inputDepth = inputDepth;
@@ -78,75 +80,107 @@ namespace NeuralSharp
             this.yScale = yScale;
         }
 
+        /// <summary>The input image of the layer.</summary>
         public Image Input
         {
             get { return this.input; }
         }
 
+        /// <summary>The output image of the layer.</summary>
         public Image Output
         {
             get { return this.output; }
         }
 
+        /// <summary>The input depth of the layer.</summary>
         public int InputDepth
         {
             get { return this.inputDepth; }
         }
 
+        /// <summary>The input width of the layer.</summary>
         public int InputWidth
         {
             get { return this.inputWidth; }
         }
 
+        /// <summary>The input height of the layer.</summary>
         public int InputHeight
         {
             get { return this.inputHeight; }
         }
 
+        /// <summary>The output depth of the layer.</summary>
         public int OutputDepth
         {
             get { return this.outputDepth; }
         }
 
+        /// <summary>The output width of the layer.</summary>
         public int OutputWidth
         {
             get { return this.outputWidth; }
         }
 
+        /// <summary>The output height of the layer.</summary>
         public int OutputHeight
         {
             get { return this.outputHeight; }
         }
         
+        /// <summary>The X scale factor of the layer.</summary>
         public int XScale
         {
             get { return this.xScale; }
         }
         
+        /// <summary>The Y scale factor of the layer.</summary>
         public int YScale
         {
             get { return this.yScale; }
         }
         
+        /// <summary>The amount of parameters of the layer.</summary>
         public int Parameters
         {
             get { return 0; }
         }
 
+        /// <summary>Feeds the layer forward.</summary>
+        /// <param name="learning">Whether the layer is being used for training purposes.</param>
         public abstract void Feed(bool learning = false);
-        public abstract void BackPropagate(Image outputError, Image inputError, bool learning);
-        public abstract ILayer<Image, Image> CreateSiamese(bool createIO = false);
-        public abstract IUntypedLayer CreateSiamese();
-        public abstract IUntypedLayer Clone();
 
+        /// <summary>Backpropagates an error trough the layer.</summary>
+        /// <param name="outputError">The output error to be backpropagated.</param>
+        /// <param name="inputError">The image to be written the input error into.</param>
+        /// <param name="learning">Whether the layer is being used in a training session.</param>
+        public abstract void BackPropagate(Image outputError, Image inputError, bool learning);
+        
+        /// <summary>Creates a siamese of the layer.</summary>
+        /// <returns>The created siamese.</returns>
+        public abstract IUntypedLayer CreateSiamese();
+
+        /// <summary>Creates a siamese of the layer.</summary>
+        /// <returns>The created instance of the <code>Pooling</code> class.</returns>
+        public abstract IUntypedLayer Clone();
+        
+        /// <summary>Updates the weights of the layer.</summary>
+        /// <param name="rate">The learning rate to be used.</param>
+        /// <param name="momentum">The momentum to be used.</param>
         public void UpdateWeights(double rate, double momentum = 0.0) { }
         
+        /// <summary>Sets the input image and the output image of the layer.</summary>
+        /// <param name="input">The input image to be set.</param>
+        /// <param name="output">The output image to be set.</param>
         public void SetInputAndOutput(Image input, Image output)
         {
             this.input = input;
             this.output = output;
         }
 
+        /// <summary>Sets the input image of the layer and creates and sets the output image.</summary>
+        /// <param name="input">The input image to be set.</param>
+        /// <returns>The created output image.</returns>
         public Image SetInputGetOutput(Image input)
         {
             this.input = input;

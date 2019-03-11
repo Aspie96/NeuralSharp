@@ -28,18 +28,12 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents a layer which converts an array to an image.</summary>
-    [DataContract]
     public class ArrayToImage : IArrayImageLayer
     {
-        [DataMember]
         private int inputSkip;
-        [DataMember]
         private int inputSize;
-        [DataMember]
         private int outputDepth;
-        [DataMember]
         private int outputWidth;
-        [DataMember]
         private int outputHeight;
         private Image output;
         private double[] input;

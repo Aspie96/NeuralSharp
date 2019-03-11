@@ -29,7 +29,6 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents a gaussian neurons string.</summary>
-    [DataContract]
     public class GaussianNeuronsString : NeuronsString
     {
         /// <summary>Either creates a siamese of the given <code>GaussianNeuronsString</code> instance or clones it.</summary>

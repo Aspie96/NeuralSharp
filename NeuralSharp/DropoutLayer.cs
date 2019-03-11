@@ -29,11 +29,9 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents a dropout layer.</summary>
-    [DataContract]
     public class DropoutLayer : NeuronsString
     {
         private bool[] dropped;
-        [DataMember]
         private double dropChance;
 
         /// <summary>Either creates a siamese of the given <code>DropoutLayer</code> instance or clones it.</summary>
@@ -59,12 +57,6 @@ namespace NeuralSharp
         public double DropChance
         {
             get { return this.dropChance; }
-        }
-
-        [OnDeserialized]
-        private void SetValuesOnDeserialized(StreamingContext context)
-        {
-            this.dropped = Backbone.CreateArray<bool>(this.Length);
         }
 
         /// <summary>Feeds this layer forward.</summary>

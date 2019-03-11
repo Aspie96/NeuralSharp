@@ -29,14 +29,10 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents a deconvolutional neural network.</summary>
-    [DataContract]
     public class DeConvolutionalNN : ForwardLearner<double[], Image>, IArrayImageLayer
     {
-        [DataMember]
         private FeedForwardNN firstPart;
-        [DataMember]
         private ArrayToImage a2i;
-        [DataMember]
         private PurelyConvolutionalNN cnn;
         private bool layersConnected;
         private double[] errorArray;
@@ -129,15 +125,7 @@ namespace NeuralSharp
         {
             get { return this.firstPart.Parameters + this.cnn.Parameters; }
         }
-
-        [OnDeserialized]
-        private void SetValuesOnDeserialized(StreamingContext context)
-        {
-            this.layersConnected = false;
-            this.errorArray = Backbone.CreateArray<double>(this.firstPart.OutputSize);
-            this.errorImage = new Image(this.cnn.InputDepth, this.cnn.InputWidth, this.cnn.InputHeight);
-        }
-
+        
         /// <summary>Creates an image which can be used as output error.</summary>
         /// <returns>The created image.</returns>
         protected override Image NewError()
@@ -145,6 +133,9 @@ namespace NeuralSharp
             return new Image(this.OutputDepth, this.OutputWidth, this.OutputHeight);
         }
 
+        /// <summary>Backpropagates the error trough the network.</summary>
+        /// <param name="outputError">The error to be backpropagated.</param>
+        /// <param name="learning">Whether the network is being used in a learning session.</param>
         public override void BackPropagate(Image outputError, bool learning)
         {
             this.cnn.BackPropagate(outputError, this.errorImage, learning);
@@ -298,13 +289,6 @@ namespace NeuralSharp
             return this.FeedAndGetError(input, 0, expectedOutput, error, learning);
         }
 
-        /// <summary>Exports the deconvolutional neural network to a stream.</summary>
-        /// <param name="stream">The stream to be exported the deconvolutional neural network into.</param>
-        public override void Save(Stream stream)
-        {
-            new DataContractSerializer(typeof(DeConvolutionalNN)).WriteObject(stream, this);
-        }
-        
         /// <summary>Creates a siamese of the network.</summary>
         /// <returns>The created instance of the <code>DeConvolutionalNN</code> class.</returns>
         public virtual IUntypedLayer CreateSiamese()

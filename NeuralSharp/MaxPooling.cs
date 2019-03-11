@@ -27,36 +27,51 @@ using System.Threading.Tasks;
 
 namespace NeuralSharp
 {
-    [DataContract]
+    /// <summary>Represents a max pooling layer.</summary>
     public class MaxPooling : Pooling
     {
+        /// <summary>Either creates a siamese of the given <code>MaxPooling</code> instance or clones it.</summary>
+        /// <param name="original">The original instance to be created a siamese of or cloned.</param>
+        /// <param name="siamese"><code>true</code> if a siamese is to be created, <code>false</code> if a clone is.</param>
         protected MaxPooling(MaxPooling original, bool siamese) : base(original, siamese) { }
 
+        /// <summary>Creates a max pooling layer.</summary>
+        /// <param name="inputDepth">The depth of the input of the layer.</param>
+        /// <param name="inputWidth">The width of the input of the layer.</param>
+        /// <param name="inputHeight">The height of the input of the layer.</param>
+        /// <param name="xScale">The X scale coefficient.</param>
+        /// <param name="yScale">The Y scale coefficient.</param>
+        /// <param name="createIO">Whether the input image and the output image are to be created.</param>
         public MaxPooling(int inputDepth, int inputWidth, int inputHeight, int xScale, int yScale, bool createIO = false) : base(inputDepth, inputWidth, inputHeight, xScale, yScale, createIO) { }
         
+        /// <summary>Feeds the layer forward.</summary>
+        /// <param name="learning">Whether the layer is being used in a training session.</param>
         public override void Feed(bool learning = false)
         {
             Backbone.ApplyMaxPool(this.Input.Raw, this.InputDepth, this.InputWidth, this.InputHeight, this.Output.Raw, this.OutputDepth, this.OutputWidth, this.OutputHeight, this.XScale, this.YScale);
         }
 
+        /// <summary>Backpropagates the given error trough the layer.</summary>
+        /// <param name="outputError">The output error to be backpropagated.</param>
+        /// <param name="inputError">The image to be written the input error into.</param>
+        /// <param name="learning">Whether the layer is being used in a training session.</param>
         public override void BackPropagate(Image outputError, Image inputError, bool learning)
         {
             Backbone.BackpropagateMaxPool(this.Input.Raw, this.InputDepth, this.InputWidth, this.InputHeight, this.Output.Raw, this.OutputDepth, this.OutputWidth, this.OutputHeight, this.XScale, this.YScale, outputError.Raw, outputError.Depth, outputError.Width, outputError.Height, inputError.Raw, inputError.Depth, inputError.Width, inputError.Height, learning);
         }
 
+        /// <summary>Cretes a siamese of the layer.</summary>
+        /// <returns>The created instance of the <code>MaxPooling</code> class.</returns>
         public override IUntypedLayer CreateSiamese()
         {
             return new MaxPooling(this, true);
         }
 
+        /// <summary>Creates a clone of the layer.</summary>
+        /// <returns>The created clone.</returns>
         public override IUntypedLayer Clone()
         {
             return new MaxPooling(this, false);
-        }
-
-        public override ILayer<Image, Image> CreateSiamese(bool createIO = false)
-        {
-            throw new NotImplementedException();
         }
     }
 }

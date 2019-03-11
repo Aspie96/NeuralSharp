@@ -28,18 +28,31 @@ using System.Threading.Tasks;
 
 namespace NeuralSharp
 {
-    [DataContract]
+    /// <summary>Represents a neurons string whose activation function is the relu activation.</summary>
     public class ReluNeuronsString : NeuronsString
     {
+        /// <summary>Either creates a siamese of the given <code>ReluNeuronsString</code> instance or clones it.</summary>
+        /// <param name="original">The original instance to be created a siamese of or a clone.</param>
+        /// <param name="siamese"><code>true</code> if a siamese is to be created, <code>false</code> if a clone is.</param>
         protected ReluNeuronsString(ReluNeuronsString original, bool siamese) : base(original, siamese) { }
 
+        /// <summary>Creates an instance of the <code>ReluNeuronsString</code> class.</summary>
+        /// <param name="length">The lenght of the layer.</param>
+        /// <param name="createIO">Whether the input array and the output array of the layer are to be created.</param>
         public ReluNeuronsString(int length, bool createIO = false) : base(length, createIO) { }
         
+        /// <summary>The activation function of the network.</summary>
+        /// <param name="input">The input.</param>
+        /// <returns>The output.</returns>
         protected override double Activation(double input)
         {
             return Math.Max(input, 0.0);
         }
 
+        /// <summary>The derivative of the activation function.</summary>
+        /// <param name="input">The input of the activation function.</param>
+        /// <param name="output">The output of the activation function.</param>
+        /// <returns>The derivative.</returns>
         protected override double ActivationDerivative(double input, double output)
         {
             return (output > 0.0 ? 1.0 : 0.0);

@@ -125,14 +125,7 @@ namespace NeuralSharp
             this.encoder.Feed(learning);
             this.decoder.Feed(learning);
         }
-
-        /// <summary>Exports the autoencoder to a stream.</summary>
-        /// <param name="stream">The stream to be exported the autoencoder into.</param>
-        public override void Save(Stream stream)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         /// <summary>Sets the input object and the output object of the learner.</summary>
         /// <param name="input">The input object to be set.</param>
         /// <param name="output">The output object to be set.</param>

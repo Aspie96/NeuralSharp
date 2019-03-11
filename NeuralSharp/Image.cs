@@ -30,7 +30,7 @@ using System.Runtime.Serialization;
 
 namespace NeuralSharp
 {
-    [DataContract]
+    /// <summary>Represents an image.</summary>
     public class Image
     {
         private int depth;
@@ -38,6 +38,11 @@ namespace NeuralSharp
         private int height;
         private float[] data;   // [depth, width, height]
         
+        /// <summary>Creates an instance of the <code>Image</code> class.</summary>
+        /// <param name="depth">The depth of the image.</param>
+        /// <param name="width">The width of the image.</param>
+        /// <param name="height">The height of the image.</param>
+        /// <param name="c">Wether to use an array to encode the image.</param>
         public Image(int depth, int width, int height, bool c = false)
         {
             this.depth = depth;
@@ -53,72 +58,137 @@ namespace NeuralSharp
             }
         }
         
+        /// <summary>The depth of the image.</summary>
         public int Depth
         {
             get { return this.depth; }
         }
         
+        /// <summary>The width of the image.</summary>
         public int Width
         {
             get { return this.width; }
         }
         
+        /// <summary>The height of the image.</summary>
         public int Height
         {
             get { return this.height; }
         }
         
+        /// <summary>The data contained by the image.</summary>
         public float[] Raw
         {
             get { return this.data; }
         }
         
+        /// <summary>Gets a value contained in the image, given its coordinates.</summary>
+        /// <param name="w">The W coordinate of the value.</param>
+        /// <param name="x">The X coordinate of the value.</param>
+        /// <param name="y">The Y coordinate of the value.</param>
+        /// <returns></returns>
         public float GetValue(int w, int x, int y)
         {
             return this.Raw[w * this.width * this.height + x * this.height + y];
         }
         
+        /// <summary>Sets a value in the image.</summary>
+        /// <param name="w">The W coordinate of the value.</param>
+        /// <param name="x">The X coordinate of the value.</param>
+        /// <param name="y">The Y coordinate of the value.</param>
+        /// <param name="value">The value.</param>
         public void SetValue(int w, int x, int y, float value)
         {
             this.Raw[w * this.width * this.height + x * this.height + y] = value;
         }
         
+        /// <summary>Copies the content of the image into an array.</summary>
+        /// <param name="depth">The depth of the portion of the image to be copied.</param>
+        /// <param name="width">The width of the portion of the image to be copied.</param>
+        /// <param name="height">The height of the portion of the image to be copied.</param>
+        /// <param name="array">The array to be copied the image into.</param>
+        /// <param name="arraySkip">The index of the first position of the array to be used.</param>
         public void ToArray(int depth, int width, int height, double[] array, int arraySkip = 0)
         {
-            int index = 0;
             Backbone.ImageToArray(this.Raw, this.Depth, this.Width, this.Height, depth, width, height, array, arraySkip);
         }
 
+        /// <summary>Copies the content of the image into an array.</summary>
+        /// <param name="array">The array to be copied into.</param>
+        /// <param name="arraySkip">The index of the first position of the array to be used.</param>
         public void ToArray(double[] array, int arraySkip = 0)
         {
             this.ToArray(this.Depth, this.Width, this.Height, array, arraySkip);
         }
 
+        /// <summary>Copies the data from the given image.</summary>
+        /// <param name="image">The image to be copied from.</param>
         public void FromImage(Image image)
         {
             this.FromImage(image, Math.Min(this.Depth, image.Depth), Math.Min(this.Width, image.Width), Math.Min(this.Height, image.Height));
         }
         
+        /// <summary>Copies the data from the given image.</summary>
+        /// <param name="image">The image to be copied from.</param>
+        /// <param name="sourceW">The W coordinate of the first value of the given image to be used.</param>
+        /// <param name="sourceX">The X coordinate of the first value of the given image to be used.</param>
+        /// <param name="sourceY">The Y coordinate of the first value of the given image to be used.</param>
+        /// <param name="thisW">The W coordinate of the first value to be copied into.</param>
+        /// <param name="thisX">The X coordinate of the first value to be copied into.</param>
+        /// <param name="thisY">The Y coordinate of the first value to be copied into.</param>
+        /// <param name="depth">The depth of the portion to be copied.</param>
+        /// <param name="width">The width of the portion to be copied.</param>
+        /// <param name="height">The height of the portion to be copied.</param>
         public void FromImage(Image image, int sourceW, int sourceX, int sourceY, int thisW, int thisX, int thisY, int depth, int width, int height)
         {
             Backbone.ImageToImage(this.Raw, this.Depth, this.Width, this.Height, image.Raw, image.Depth, image.Width, image.Height, sourceW, sourceX, sourceY, thisW, thisX, thisY, depth, width, height);
         }
         
-        public void FromArray(double[] array, int skip, int thisW, int thisX, int thisY, int depth, int width, int height)
+        /// <summary>Copies data from an array.</summary>
+        /// <param name="array">The array to be copied from.</param>
+        /// <param name="skip">The index of the first entry of the array to be used.</param>
+        /// <param name="w">The W coordinate of the first value to be copied into.</param>
+        /// <param name="x">The X coordinate of the first value to be copied into.</param>
+        /// <param name="y">The Y coordinate of the first value to be copied into.</param>
+        /// <param name="depth">The depth of the portion to be copied into.</param>
+        /// <param name="width">The width of the portion to be copied into.</param>
+        /// <param name="height">The height of the portion to be copied into.</param>
+        public void FromArray(double[] array, int skip, int w, int x, int y, int depth, int width, int height)
         {
-            Backbone.ArrayToImage(this.Raw, this.Depth, this.Width, this.Height, array, skip, thisW, thisX, thisY, depth, width, height);
+            Backbone.ArrayToImage(this.Raw, this.Depth, this.Width, this.Height, array, skip, w, x, y, depth, width, height);
         }
 
+        /// <summary>Copies data from an array.</summary>
+        /// <param name="array">The array to be copied from.</param>
+        /// <param name="skip">The index of the first entry of the array to be used.</param>
         public void FromArray(double[] array, int skip = 0)
         {
             this.FromArray(array, skip, 0, 0, 0, this.Depth, this.Width, this.Height);
         }
 
+        /// <summary>Copies the data from the given image.</summary>
+        /// <param name="image">The image to be copied from.</param>
+        /// <param name="depth">The depth of the portion to be copied.</param>
+        /// <param name="width">The width of the portion to be copied.</param>
+        /// <param name="height">The height of the portion to be copied.</param>
         public void FromImage(Image image, int depth, int width, int height)
         {
             this.FromImage(image, 0, 0, 0, 0, 0, 0, depth, width, height);
         }
         
+        /// <summary>Copies data from the given image, scaling it.</summary>
+        /// <param name="image">The image to be copied from.</param>
+        /// <param name="sourceW">The W coordinate of the first value of the given image to be used.</param>
+        /// <param name="sourceX">The X coordinate of the first value of the given image to be used.</param>
+        /// <param name="sourceY">The Y coordinate of the first value of the given image to be used.</param>
+        /// <param name="thisW">The W coordinate of the first value to be copied into.</param>
+        /// <param name="thisX">The X coordinate of the first value to be copied into.</param>
+        /// <param name="thisY">The Y coordinate of the first value to be copied into.</param>
+        /// <param name="depth">The depth of the portion to be copied.</param>
+        /// <param name="sourceWidth">The width of the portion to be copied.</param>
+        /// <param name="sourceHeight">The height of the portion to be copied.</param>
+        /// <param name="thisWidth">The resulting width of the portion to be copied.</param>
+        /// <param name="thisHeight">The resulting height of the portion to be copied.</param>
         public void FromImageScaled(Image image, int sourceW, int sourceX, int sourceY, int thisW, int thisX, int thisY, int depth, int sourceWidth, int sourceHeight, int thisWidth, int thisHeight)
         {
             float scaleX = (thisWidth > sourceWidth) ? ((thisWidth - 1.0F) / (sourceWidth - 1.0F)) : ((float)thisWidth / sourceWidth);
@@ -188,16 +258,30 @@ namespace NeuralSharp
             }
         }
         
+        /// <summary>Copies data from the given image, scaling it.</summary>
+        /// <param name="image">The image to be copied from.</param>
+        /// <param name="sourceX">The X coordinate of the first value to be copied from.</param>
+        /// <param name="sourceY">The X coordinate of the first value to be copied from.</param>
+        /// <param name="thisX">The X coordinate of the firt value to be copied into.</param>
+        /// <param name="thisY">The Y coordinate of the first value to be copied into.</param>
+        /// <param name="sourceWidth">The width of the portion to be copied.</param>
+        /// <param name="sourceHeight">The height of the portion to be copied.</param>
+        /// <param name="thisWidth">The resulting width of the portion to be copied.</param>
+        /// <param name="thisHeight">The resulting height of the portion to be copied.</param>
         public void FromImageScaled(Image image, int sourceX, int sourceY, int thisX, int thisY, int sourceWidth, int sourceHeight, int thisWidth, int thisHeight)
         {
             this.FromImageScaled(image, 0, sourceX, sourceY, 0, thisX, thisY, Math.Min(this.Depth, image.Depth), sourceWidth, sourceHeight, thisWidth, thisHeight);
         }
         
+        /// <summary>Copies the data from the given image, scaling it.</summary>
+        /// <param name="image">The image to be copied from.</param>
         public void FromImageScaled(Image image)
         {
             this.FromImageScaled(image, 0, 0, 0, 0, image.Width, image.height, this.Width, this.Height);
         }
         
+        /// <summary>Copies data from the given image.</summary>
+        /// <param name="image">The image to be copied from.</param>
         public void FromBitmap(Bitmap image)
         {
             if (this.Depth == 3)
@@ -226,11 +310,18 @@ namespace NeuralSharp
             }
         }
         
+        /// <summary>Copies data from the given image.</summary>
+        /// <param name="path">The image to be copied from.</param>
         public void FromBitmap(string path)
         {
             this.FromBitmap(new Bitmap(path));
         }
 
+        /// <summary>Returns the central scaled portion from the given image.</summary>
+        /// <param name="path">The path of the image to be copied from.</param>
+        /// <param name="width">The width of the image.</param>
+        /// <param name="height">The height of the image.</param>
+        /// <returns>The created image.</returns>
         public static Image AdaptFromBitmap(string path, int width, int height)
         {
             Bitmap image = new Bitmap(path);
@@ -369,6 +460,8 @@ namespace NeuralSharp
             return retVal;
         }
         
+        /// <summary>Creates a green and black version of the image.</summary>
+        /// <returns>The created image.</returns>
         public Bitmap ToGreenBitmap()
         {
             Bitmap retVal = new Bitmap(this.Width, this.Height);
@@ -392,6 +485,9 @@ namespace NeuralSharp
             return retVal;
         }
         
+        /// <summary>Saves the image to a file.</summary>
+        /// <param name="path">The file to be exported into.</param>
+        /// <param name="format">The format of the output image.</param>
         public void Export(string path, ImageFormat format)
         {
             Bitmap bmp = this.ToBitmap();
@@ -399,6 +495,8 @@ namespace NeuralSharp
             bmp.Dispose();
         }
         
+        /// <summary>Saves the image to a file.</summary>
+        /// <param name="path">The file to be exported into.</param>
         public void Export(string path)
         {
             if (Path.GetExtension(path) == "")
@@ -408,49 +506,11 @@ namespace NeuralSharp
             this.Export(path, ImageFormat.Png);
         }
         
-        public static void SaveAllLayers(string path, Image[] images, bool smart = false, bool createHtml = true)
-        {
-            Directory.CreateDirectory(path);
-            for (int i = 0; i < images.Length; i++)
-            {
-                images[i].ExportLayers(path + "\\" + i, smart, false);
-            }
-            if (createHtml)
-            {
-                StreamWriter sw = new StreamWriter(path + "\\doc.html");
-                sw.WriteLine("<body style=\"background-color:aqua\">");
-                for (int i = 0; i < images.Length; i++)
-                {
-                    sw.WriteLine("<h2>" + i + "</h2>");
-                    for (int j = 0; j < images[i].Depth; j++)
-                    {
-                        sw.WriteLine("<img src=\"" + i + "/" + j + ".png\">");
-                    }
-                }
-                sw.WriteLine("</body>");
-                sw.Close();
-            }
-        }
-        
-        public void ExportLayers(string path, bool smart = false, bool createHtml = true)
-        {
-            Directory.CreateDirectory(path);
-            for (int i = 0; i < this.Depth; i++)
-            {
-                this.ToBitmap(i, smart).Save(path + "\\" + i + ".png", ImageFormat.Png);
-            }
-            if (createHtml)
-            {
-                StreamWriter sw = new StreamWriter(path + "\\doc.html");
-                for (int i = 0; i < this.Depth; i++)
-                {
-                    sw.WriteLine("<img src=\"" + i + ".png\">");
-                }
-                sw.Close();
-            }
-        }
-        
-        public Bitmap ToBitmap(int layer, bool smart = false)
+        /// <summary>Exports the image.</summary>
+        /// <param name="w">The W coordinate of the portion to be exported.</param>
+        /// <param name="smart"><code>true</code> if the resulting image is not to be black and white, <code>true</code> otherwise.</param>
+        /// <returns>The created image.</returns>
+        public Bitmap ToBitmap(int w, bool smart = false)
         {
             Bitmap retVal = new Bitmap(this.Width, this.Height);
             for (int i = 0; i < this.Width; i++)
@@ -460,12 +520,12 @@ namespace NeuralSharp
                     Color color;
                     if (smart)
                     {
-                        int bright = Math.Min((int)Math.Round(Math.Sqrt(this.Raw[layer * this.Width * this.Height + i * this.Height + j]) * 255.0F * 3), 255 * 3);
+                        int bright = Math.Min((int)Math.Round(Math.Sqrt(this.Raw[w * this.Width * this.Height + i * this.Height + j]) * 255.0F * 3), 255 * 3);
                         color = Color.FromArgb(Math.Min(bright, 255), Math.Max(0, Math.Min(bright - 255, 255)), Math.Max(0, Math.Min(bright - 510, 255)));
                     }
                     else
                     {
-                        int bright = Math.Min((int)Math.Round(this.Raw[layer * this.Width * this.Height + i * this.Height + j] * 255.0F), 255);
+                        int bright = Math.Min((int)Math.Round(this.Raw[w * this.Width * this.Height + i * this.Height + j] * 255.0F), 255);
                         color = Color.FromArgb(bright, bright, bright);
                     }
                     retVal.SetPixel(i, j, color);
@@ -474,6 +534,8 @@ namespace NeuralSharp
             return retVal;
         }
         
+        /// <summary>Exports the image.</summary>
+        /// <returns>The created image.</returns>
         public Bitmap ToBitmap()
         {
             Bitmap retVal = new Bitmap(this.Width, this.Height);
@@ -497,6 +559,7 @@ namespace NeuralSharp
             return retVal;
         }
         
+        /// <summary>Normalizes the values in the image.</summary>
         public void Normalize()
         {
             for (int i = 0; i < this.Depth; i++)
@@ -526,310 +589,6 @@ namespace NeuralSharp
                     Array.Clear(this.Raw, 0, this.Raw.Length);
                 }
             }
-        }
-        
-        public void GetMinMax(out float min, out float max)
-        {
-            min = float.PositiveInfinity;
-            max = float.NegativeInfinity;
-            for (int i = 0; i < this.Depth; i++)
-            {
-                for (int j = 0; j < this.Width; j++)
-                {
-                    for (int k = 0; k < this.Height; k++)
-                    {
-                        min = Math.Min(this.Raw[i * this.Width * this.Height + j * this.Height + k], min);
-                        max = Math.Max(this.Raw[i * this.Width * this.Height + j * this.Height + k], max);
-                    }
-                }
-            }
-        }
-        
-        public static void NormalizeAll(params Image[] images)
-        {
-            float min = float.PositiveInfinity;
-            float max = float.NegativeInfinity;
-            for (int i = 0; i < images.Length; i++)
-            {
-                images[i].GetMinMax(out float imgMin, out float imgMax);
-                min = Math.Min(min, imgMin);
-                max = Math.Max(max, imgMax);
-            }
-            for (int i = 0; i < images.Length; i++)
-            {
-                images[i].Normalize(min, max);
-            }
-        }
-        
-        public void Normalize(float min, float max)
-        {
-            for (int i = 0; i < this.Depth; i++)
-            {
-                if (max > min)
-                {
-                    for (int j = 0; j < this.Width; j++)
-                    {
-                        for (int k = 0; k < this.Height; k++)
-                        {
-                            this.Raw[i * this.Width * this.Height + j * this.Height + k] = (this.Raw[i * this.Width * this.Height + j * this.Height + k] - min) / (max - min);
-                        }
-                    }
-                }
-                else
-                {
-                    Array.Clear(this.Raw, 0, this.Raw.Length);
-                }
-            }
-        }
-        
-        /*public void Randomize()
-        {
-            for (int i = 0; i < this.Depth; i++)
-            {
-                for (int j = 0; j < this.Width; j++)
-                {
-                    for (int k = 0; k < this.Height; k++)
-                    {
-                        this.Raw[i * this.Width * this.Height + j * this.Height + k] = RandomGenerator.GetFloat();
-                    }
-                }
-            }
-        }*/
-        
-        public void Clear()
-        {
-            Array.Clear(this.Raw, 0, this.Raw.Length);
-        }
-        
-        public void Clear(int w, int x, int z, int depth, int width, int height)
-        {
-            /*for (int i = w; i < w + depth; i++)
-            {
-                for (int j = x; j < x + width; j++)
-                {
-                    for (int k = z; k < z + height; k++)
-                    {
-                        this.Raw[i, j, k] = 0.0F;
-                    }
-                }
-            }*/
-        }
-        
-        /*public void Add(Image image, float alpha = 1.0F)
-        {
-            int depth = Math.Min(this.Depth, image.Depth);
-            int width = Math.Min(this.Width, image.Width);
-            int height = Math.Min(this.Height, image.Height);
-            for (int i = 0; i < depth; i++)
-            {
-                for (int j = 0; j < width; j++)
-                {
-                    for (int k = 0; k < height; k++)
-                    {
-                        this.Raw[i, j, k] += image.Raw[i, j, k] * alpha;
-                    }
-                }
-            }
-        }
-        
-        public float MaxAt(int x, int y)
-        {
-            float retVal = this.Raw[0, x, y];
-            for (int i = 1; i < this.Depth; i++)
-            {
-                retVal = Math.Max(retVal, this.Raw[0, x, y]);
-            }
-            return retVal;
-        }
-        
-        public Image MnistAdapt(int outputSize = 28, int outputPad = 4, int w = 0)
-        {
-            Image retVal = new Image(1, outputSize, outputSize);
-
-            float meanX = 0;
-            float meanY = 0;
-            float sumPixels = 0.0F;
-            for (var i = 0; i < this.Width; i++)
-            {
-                for (var j = 0; j < this.Height; j++)
-                {
-                    sumPixels += this.Raw[w, i, j];
-                    meanY += j * this.Raw[w, i, j];
-                    meanX += i * this.Raw[w, i, j];
-                }
-            }
-            meanX /= sumPixels;
-            meanY /= sumPixels;
-            int centerX = (int)Math.Round(meanX);
-            int centerY = (int)Math.Round(meanY);
-
-            var threshold = 0.01F;
-            int xMin = this.Width;
-            int xMax = -1;
-            int yMin = this.Height;
-            int yMax = -1;
-            for (int i = 0; i < this.Width; i++)
-            {
-                for (int j = 0; j < this.Height; j++)
-                {
-                    if (this.Raw[w, i, j] > threshold)
-                    {
-                        xMin = Math.Min(i, xMin);
-                        xMax = Math.Max(i, xMax);
-                        yMin = Math.Min(j, yMin);
-                        yMax = Math.Max(j, yMax);
-                    }
-                }
-            }
-
-            int radius = Math.Max(Math.Max(centerX - xMin, centerY - yMin), Math.Max(xMax - centerX, yMax - centerY));
-            int x = Math.Max(centerX - radius, 0);
-            int y = Math.Max(centerY - radius, 0);
-            int contentSize = outputSize - outputPad * 2;
-
-            retVal.FromImageScaled(this, w, x, y, 0, outputPad, outputPad, 1, Math.Min(this.Width - x, radius * 2), Math.Min(this.Height - y, radius * 2), contentSize, contentSize);
-            retVal.Normalize();
-            return retVal;
-        }*/
-
-        private static void FromMnistFunc(Stream stream, Image[] array, bool normalize, int count, int skip, bool emnist = false)
-        {
-            int width = (stream.ReadByte() << 24) + (stream.ReadByte() << 16) + (stream.ReadByte() << 8) + stream.ReadByte();
-            int height = (stream.ReadByte() << 24) + (stream.ReadByte() << 16) + (stream.ReadByte() << 8) + stream.ReadByte();
-            stream.Position += skip * width * height;
-            for (int i = 0; i < count; i++)
-            {
-                array[i] = new Image(1, width, height, true);
-                if (emnist)
-                {
-                    for (int j = 0; j < width; j++)
-                    {
-                        for (int k = 0; k < height; k++)
-                        {
-                            array[i].SetValue(0, j, k, stream.ReadByte() / 255.0F);
-                        }
-                    }
-                }
-                else
-                {
-                    for (int j = 0; j < height; j++)
-                    {
-                        for (int k = 0; k < width; k++)
-                        {
-                            array[i].SetValue(0, k, j, stream.ReadByte() / 255.0F);
-                        }
-                    }
-                }
-                if (normalize)
-                {
-                    array[i].Normalize();
-                }
-            }
-        }
-        
-        public static Image[] FromMnist(Stream stream, bool normalize = true, int maxCount = 0, int skip = 0, bool emnist = false)
-        {
-            stream.Position = 4;
-            int count = (stream.ReadByte() << 24) + (stream.ReadByte() << 16) + (stream.ReadByte() << 8) + stream.ReadByte();
-            if (maxCount > 0 && count > maxCount)
-            {
-                count = maxCount;
-            }
-            Image[] retVal = new Image[count];
-            FromMnistFunc(stream, retVal, normalize, count, skip, emnist);
-            return retVal;
-        }
-        
-        public static void FromMnist(Stream stream, Image[] array, bool normalize = true, int maxCount = 0, int skip = 0, bool emnist = false)
-        {
-            stream.Position = 4;
-            int count = (stream.ReadByte() << 24) + (stream.ReadByte() << 16) + (stream.ReadByte() << 8) + stream.ReadByte();
-            if (maxCount > 0 && count > maxCount || count > array.Length)
-            {
-                count = Math.Min(maxCount, array.Length);
-            }
-            FromMnistFunc(stream, array, normalize, count, skip, emnist);
-        }
-
-        private static void FromMnistLabelsFunc(Stream stream, double[][] array, bool smart, int count, int skip, int labels)
-        {
-            stream.Position += skip;
-            if (smart)
-            {
-                double[][] vectorLables = new double[labels][];
-                for (int i = 0; i < labels; i++)
-                {
-                    vectorLables[i] = new double[labels];
-                    vectorLables[i][i] = 1.0;
-                }
-                for (int i = 0; i < count; i++)
-                {
-                    array[i] = vectorLables[stream.ReadByte()];
-                }
-            }
-            else
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    array[i] = new double[labels];
-                    array[i][stream.ReadByte()] = 1.0;
-                }
-            }
-        }
-        
-        public static double[][] FromMnistLabels(Stream stream, bool smart = true, int maxCount = 0, int skip = 0, int labels = 10)
-        {
-            stream.Position = 4;
-            int count = (stream.ReadByte() << 24) + (stream.ReadByte() << 16) + (stream.ReadByte() << 8) + stream.ReadByte();
-            if (maxCount > 0 && count > maxCount)
-            {
-                count = maxCount;
-            }
-            double[][] retVal = new double[count][];
-            FromMnistLabelsFunc(stream, retVal, smart, count, skip, labels);
-            return retVal;
-        }
-        
-        public static void FromMnistLabels(Stream stream, double[][] array, bool smart = true, int maxCount = 0, int skip = 0, int labels = 10)
-        {
-            stream.Position = 4;
-            int count = (stream.ReadByte() << 24) + (stream.ReadByte() << 16) + (stream.ReadByte() << 8) + stream.ReadByte();
-            if (maxCount > 0 && count > maxCount || count > array.Length)
-            {
-                count = Math.Min(array.Length, maxCount);
-            }
-            stream.Position += skip;
-            FromMnistLabelsFunc(stream, array, smart, count, skip, labels);
-        }
-        
-        public static Image[] FromMnist(string fileName, bool normalize = true, int maxCount = 0, int skip = 0, bool emnist = false)
-        {
-            FileStream fs = new FileStream(fileName, FileMode.Open);
-            Image[] retVal = Image.FromMnist(fs, normalize, maxCount, skip, emnist);
-            fs.Close();
-            return retVal;
-        }
-        
-        public static double[][] FromMnistLabels(string fileName, bool smart = true, int maxCount = 0, int skip = 0, int labels = 10)
-        {
-            FileStream fs = new FileStream(fileName, FileMode.Open);
-            double[][] retVal = Image.FromMnistLabels(fs, smart, maxCount, skip, labels);
-            fs.Close();
-            return retVal;
-        }
-        
-        public static void FromMnist(string fileName, Image[] array, bool normalize = true, int maxCount = 0, int skip = 0, bool emnist = false)
-        {
-            FileStream fs = new FileStream(fileName, FileMode.Open);
-            Image.FromMnist(fs, array, normalize, maxCount, skip, emnist);
-            fs.Close();
-        }
-        
-        public static void FromMnistLabels(string fileName, double[][] array, bool smart = true, int maxCount = 0, int skip = 0, int labels = 10)
-        {
-            FileStream fs = new FileStream(fileName, FileMode.Open);
-            Image.FromMnistLabels(fs, array, smart, maxCount, skip, labels);
-            fs.Close();
         }
     }
 }

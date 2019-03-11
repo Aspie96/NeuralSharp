@@ -53,7 +53,6 @@ namespace NeuralSharp
 
         public static double GetNormalNumber(double variance)
         {
-            //return RandomGenerator.r.NextDouble() * Math.Sqrt(variance * 12) - Math.Sqrt(variance * 3);
             return Math.Sqrt(variance) * Math.Sqrt(-2.0 * Math.Log(RandomGenerator.GetDouble())) * Math.Sin(2.0 * Math.PI * RandomGenerator.GetDouble());
         }
 

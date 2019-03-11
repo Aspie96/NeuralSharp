@@ -29,14 +29,10 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents a convolutional neural network.</summary>
-    [DataContract]
     public class ConvolutionalNN : ForwardLearner<Image, double[]>, IImageArrayLayer
     {
-        [DataMember]
         private PurelyConvolutionalNN firstPart;
-        [DataMember]
         private ImageToArray i2a;
-        [DataMember]
         private FeedForwardNN fnn;
         private bool layersConnected;
         private double[] errorArray;
@@ -127,14 +123,6 @@ namespace NeuralSharp
         public override int Parameters
         {
             get { return this.firstPart.Parameters + this.fnn.Parameters; }
-        }
-
-        [OnDeserialized]
-        private void SetValuesOnDeserialized(StreamingContext context)
-        {
-            this.layersConnected = false;
-            this.errorArray = Backbone.CreateArray<double>(this.firstPart.OutputDepth * this.firstPart.OutputWidth * this.firstPart.OutputHeight);
-            this.errorImage = new Image(this.firstPart.OutputDepth, this.firstPart.OutputWidth, this.firstPart.OutputHeight);
         }
 
         /// <summary>Creates a new array which can be used as output error.</summary>
@@ -308,13 +296,6 @@ namespace NeuralSharp
         public override double FeedAndGetError(Image input, double[] expectedOutput, double[] error, bool learning)
         {
             return this.FeedAndGetError(input, expectedOutput, 0, error, 0, learning);
-        }
-
-        /// <summary>Exports the convolutional neural network to a stream.</summary>
-        /// <param name="stream">The stream to be exported the convolutional neural network into.</param>
-        public override void Save(Stream stream)
-        {
-            new DataContractSerializer(typeof(ConvolutionalNN)).WriteObject(stream, this);
         }
         
         /// <summary>Creates a siamese of the network.</summary>

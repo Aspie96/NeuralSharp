@@ -26,12 +26,28 @@ using System.Threading.Tasks;
 
 namespace NeuralSharp
 {
+    /// <summary>Represents a layer whose input is an image and whose output is an array.</summary>
     public interface IImageArrayLayer : ILayer<Image, double[]>
     {
+        /// <summary>The depth of the input of the layer.</summary>
         int InputDepth { get; }
+
+        /// <summary>The width of the input of the layer.</summary>
         int InputWidth { get; }
+
+        /// <summary>The height of the input of the layer.</summary>
         int InputHeight { get; }
+
+        /// <summary>The lenght of the output of the layer.</summary>
         int OutputSize { get; }
+
+        /// <summary>The index of the first position of</summary>
         int OutputSkip { get; }
+
+        /// <summary>Sets the input image and the output array of the layer.</summary>
+        /// <param name="input">The input image to be set.</param>
+        /// <param name="outputArray">The output array to be set.</param>
+        /// <param name="outputSkip">The index of the first position of the output array to be used.</param>
+        void SetInputAndOutput(Image input, double[] outputArray, int outputSkip);
     }
 }

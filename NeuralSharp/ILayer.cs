@@ -26,10 +26,25 @@ using System.Threading.Tasks;
 
 namespace NeuralSharp
 {
+    /// <summary>Represents a layer in a learner.</summary>
+    /// <typeparam name="TIn">The input type of the layer.</typeparam>
+    /// <typeparam name="TOut">The output type of the layer.</typeparam>
     public interface ILayer<TIn, TOut> : ILayerFrom<TIn>, ILayerTo<TOut> where TIn : class where TOut : class
     {
+        /// <summary>Backpropagates the given error trough the layer.</summary>
+        /// <param name="outputError">The output error to be backpropagated.</param>
+        /// <param name="inputError">The object to be written the input error into.</param>
+        /// <param name="learning">Whether the layer is being used in a training session.</param>
         void BackPropagate(TOut outputError, TIn inputError, bool learning);
+
+        /// <summary>Sets the input object and the output object of the layer.</summary>
+        /// <param name="input">The input object to be set.</param>
+        /// <param name="output">The output object to be set.</param>
         void SetInputAndOutput(TIn input, TOut output);
+
+        /// <summary>Sets the input object of the layer and creates and sets the output object.</summary>
+        /// <param name="input">The input object to be set.</param>
+        /// <returns>The created output object.</returns>
         TOut SetInputGetOutput(TIn input);
     }
 }

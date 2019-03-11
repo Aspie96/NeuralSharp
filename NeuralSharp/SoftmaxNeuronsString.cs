@@ -28,18 +28,29 @@ using System.Threading.Tasks;
 
 namespace NeuralSharp
 {
-    [DataContract]
+    /// <summary>Represents a softmax neurons string.</summary>
     public class SoftmaxNeuronsString : NeuronsString
     {
+        /// <summary>Either creates a siamese of the given <code>SoftmaxNeuronsString</code> class or clones it.</summary>
+        /// <param name="original">The original instance to be created a siamese of or cloned.</param>
+        /// <param name="siamese"><code>true</code> if a siamese is to be created, <code>false</code> if a clone is.</param>
         protected SoftmaxNeuronsString(SoftmaxNeuronsString original, bool siamese) : base(original, siamese) { }
 
+        /// <summary>Creates an instance of the <code>SoftmaxNeuronsString</code> class.</summary>
+        /// <param name="length">The lenght of the layer.</param>
+        /// <param name="createIO">Whether the input array and the output array are to be created.</param>
         public SoftmaxNeuronsString(int length, bool createIO = false) : base(length, createIO) { }
         
+        /// <summary>Applies the softmax function.</summary>
+        /// <param name="array">The array to be applied the softmax function to.</param>
         public static void Softmax(double[] array)
         {
             SoftmaxNeuronsString.Softmax(array, array);
         }
         
+        /// <summary>Applies the softmax function.</summary>
+        /// <param name="array">The input array.</param>
+        /// <param name="output">The output array.</param>
         public static void Softmax(double[] array, double[] output)
         {
             double expSum = 0.0;
@@ -53,6 +64,9 @@ namespace NeuralSharp
             }
         }
         
+        /// <summary>Applies the derivative of the softmax function.</summary>
+        /// <param name="array">The input.</param>
+        /// <param name="output">The output.</param>
         public static void SoftmaxDerivative(double[] array, double[,] output)
         {
             for (int i = 0; i < array.Length; i++)
@@ -65,21 +79,33 @@ namespace NeuralSharp
             }
         }
 
+        /// <summary>Backpropagates the given error trough the network.</summary>
+        /// <param name="outputErrorArray">The error to be backpropagated.</param>
+        /// <param name="outputErrorSkip">The index of the first entry of the output error to be used.</param>
+        /// <param name="inputErrorArray">The array to be written the input error into.</param>
+        /// <param name="inputErrorSkip">The index of the first entry of the input error to be used.</param>
+        /// <param name="learning">Whether the layer is being used in a learning session.</param>
         public override void BackPropagate(double[] outputErrorArray, int outputErrorSkip, double[] inputErrorArray, int inputErrorSkip, bool learning)
         {
             Backbone.BackpropagateSoftmax(this.Input, this.InputSkip, this.Output, this.OutputSkip, this.Length, outputErrorArray, outputErrorSkip, inputErrorArray, inputErrorSkip, learning);
         }
         
+        /// <summary>Feeds the layer forward.</summary>
+        /// <param name="learning">Whether the layer is being used in a training session.</param>
         public override void Feed(bool learning = false)
         {
             Backbone.ApplySoftmax(this.Input, this.InputSkip, this.Output, this.OutputSkip, this.Length);
         }
 
+        /// <summary>Creates a siamese of the layer.</summary>
+        /// <returns>The created instance of the <code>SoftmaxNeuronsString</code> class.</returns>
         public override IUntypedLayer CreateSiamese()
         {
             return new SoftmaxNeuronsString(this, true);
         }
 
+        /// <summary>Creates a clone of the layer.</summary>
+        /// <returns>The created instance of the <code>SoftmaxNeuronsString</code> class.</returns>
         public override IUntypedLayer Clone()
         {
             return new SoftmaxNeuronsString(this, false);

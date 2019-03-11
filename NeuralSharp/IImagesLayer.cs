@@ -26,13 +26,25 @@ using System.Threading.Tasks;
 
 namespace NeuralSharp
 {
+    /// <summary>Represents a layer whose input is an image and whose output is an image.</summary>
     public interface IImagesLayer : ILayer<Image, Image>
     {
+        /// <summary>The depth of the input of the layer.</summary>
         int InputDepth { get; }
+
+        /// <summary>The width of the input of the layer.</summary>
         int InputWidth { get; }
+
+        /// <summary>The height of the input of the layer.</summary>
         int InputHeight { get; }
+
+        /// <summary>The depth of the output of the layer.</summary>
         int OutputDepth { get; }
+
+        /// <summary>The width of the output of the layer.</summary>
         int OutputWidth { get; }
+
+        /// <summary>The height of the output of the layer.</summary>
         int OutputHeight { get; }
     }
 }

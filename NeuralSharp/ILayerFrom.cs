@@ -26,8 +26,11 @@ using System.Threading.Tasks;
 
 namespace NeuralSharp
 {
+    /// <summary>Represents a layer of known input type.</summary>
+    /// <typeparam name="T">The input type of the layer.</typeparam>
     public interface ILayerFrom<T> : IUntypedLayer where T : class
     {
+        /// <summary>The input object of the layer.</summary>
         T Input { get; }
     }
 }

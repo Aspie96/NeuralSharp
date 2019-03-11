@@ -26,13 +26,27 @@ using System.Threading.Tasks;
 
 namespace NeuralSharp
 {
+    /// <summary>Represents a layer.</summary>
     public interface IUntypedLayer
     {
+        /// <summary>The amount of parameters of the layer.</summary>
         int Parameters { get; }
 
+        /// <summary>Feeds the layer forward.</summary>
+        /// <param name="learning">Whether the layer is being used in a training session.</param>
         void Feed(bool learning = false);
+
+        /// <summary>Updates the weights of the layer.</summary>
+        /// <param name="rate">The learning rate to be used.</param>
+        /// <param name="momentum">The momentum to be used.</param>
         void UpdateWeights(double rate, double momentum = 0.0);
+
+        /// <summary>Creates a siamese of the layer.</summary>
+        /// <returns>The created siamese.</returns>
         IUntypedLayer CreateSiamese();
+
+        /// <summary>Clones the layer.</summary>
+        /// <returns>The created clone.</returns>
         IUntypedLayer Clone();
     }
 }
