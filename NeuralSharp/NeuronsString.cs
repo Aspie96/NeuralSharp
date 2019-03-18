@@ -36,6 +36,7 @@ namespace NeuralSharp
         private int inputSkip;
         private int outputSkip;
         private int length;
+        private object siameseID;
 
         /// <summary>Either creates a siamese of the given <code>NeuronsString</code> instance or clones it.</summary>
         /// <param name="original">The original instance to be creted a siamese of or cloned.</param>
@@ -43,6 +44,14 @@ namespace NeuralSharp
         protected NeuronsString(NeuronsString original, bool siamese)
         {
             this.length = original.Length;
+            if (siamese)
+            {
+                this.siameseID = original.SiameseID;
+            }
+            else
+            {
+                this.siameseID = new object();
+            }
         }
 
         /// <summary>Creates an instance of the <code>NeuronsString</code> class.</summary>
@@ -58,6 +67,7 @@ namespace NeuralSharp
                 this.outputSkip = 0;
             }
             this.length = length;
+            this.siameseID = new object();
         }
         
         /// <summary>The input array.</summary>
@@ -106,6 +116,12 @@ namespace NeuralSharp
         public int Parameters
         {
             get { return 0; }
+        }
+
+        /// <summary>The siamese identifier of the layer.</summary>
+        public object SiameseID
+        {
+            get { return this.siameseID; }
         }
 
         /// <summary>The activation function of the layer.</summary>
@@ -197,19 +213,31 @@ namespace NeuralSharp
         /// <param name="rate">The learning rate to be used.</param>
         /// <param name="momentum">The momentum to be used.</param>
         public void UpdateWeights(double rate, double momentum = 0.0) { }
-        
+
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The siamese.</returns>
-        public virtual IUntypedLayer CreateSiamese()
+        public virtual ILayer<double[], double[]> CreateSiamese()
         {
             return new NeuronsString(this, true);
         }
 
         /// <summary>Creates a clone of the layer.</summary>
         /// <returns>The clone.</returns>
-        public virtual IUntypedLayer Clone()
+        public virtual ILayer<double[], double[]> Clone()
         {
             return new NeuronsString(this, false);
+        }
+
+        /// <summary>Counts the amount of parameters of the layer.</summary>
+        /// <param name="siameseIDs">The siamese identifier to be excluded. The siamese identifiers of the layer will be added to the list.</param>
+        /// <returns>The amount of parameters of the layer.</returns>
+        public int CountParameters(List<object> siameseIDs)
+        {
+            if (!siameseIDs.Contains(this.SiameseID))
+            {
+                siameseIDs.Add(this.SiameseID);
+            }
+            return 0;
         }
     }
 }

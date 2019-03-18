@@ -62,14 +62,14 @@ namespace NeuralSharp
 
         /// <summary>Cretes a siamese of the layer.</summary>
         /// <returns>The created instance of the <code>MaxPooling</code> class.</returns>
-        public override IUntypedLayer CreateSiamese()
+        public override ILayer<Image, Image> CreateSiamese()
         {
             return new MaxPooling(this, true);
         }
 
         /// <summary>Creates a clone of the layer.</summary>
         /// <returns>The created clone.</returns>
-        public override IUntypedLayer Clone()
+        public override ILayer<Image, Image> Clone()
         {
             return new MaxPooling(this, false);
         }

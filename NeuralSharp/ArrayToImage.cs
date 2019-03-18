@@ -37,6 +37,7 @@ namespace NeuralSharp
         private int outputHeight;
         private Image output;
         private double[] input;
+        private object siameseID;
 
         /// <summary>Either creates a siamese of the given <code>ArrayToImage</code> instance or clones it.</summary>
         /// <param name="original">The original instance to be created a siamese of or cloned.</param>
@@ -47,6 +48,14 @@ namespace NeuralSharp
             this.outputDepth = original.OutputDepth;
             this.outputWidth = original.OutputWidth;
             this.outputHeight = original.OutputHeight;
+            if (siamese)
+            {
+                this.siameseID = original.SiameseID;
+            }
+            else
+            {
+                this.siameseID = new object();
+            }
         }
 
         /// <summary>Create an instance of the <code>ArrayToImage</code> class.</summary>
@@ -64,6 +73,7 @@ namespace NeuralSharp
             {
                 this.SetInputGetOutput(Backbone.CreateArray<double>(this.inputSize));
             }
+            this.siameseID = new object();
         }
 
         /// <summary>The input array of the layer.</summary>
@@ -112,6 +122,12 @@ namespace NeuralSharp
         public int Parameters
         {
             get { return 0; }
+        }
+
+        /// <summary>The siamese identifier of the layer.</summary>
+        public object SiameseID
+        {
+            get { return this.siameseID; }
         }
 
         /// <summary>Feeds the layer forward.</summary>
@@ -166,16 +182,28 @@ namespace NeuralSharp
         
         /// <summary>Creates a siamese of this layer.</summary>
         /// <returns>The created <code>ArrayToImage</code> instance.</returns>
-        public virtual IUntypedLayer CreateSiamese()
+        public virtual ILayer<double[], Image> CreateSiamese()
         {
             return new ArrayToImage(this, true);
         }
 
         /// <summary>Creates a clone of this layer.</summary>
         /// <returns>The created <code>ArrayToImage</code> instance.</returns>
-        public virtual IUntypedLayer Clone()
+        public virtual ILayer<double[], Image> Clone()
         {
             return new ArrayToImage(this, false);
+        }
+
+        /// <summary>Computes the amount of parameters of the layer.</summary>
+        /// <param name="siameseIDs">The siamese identifiers to be excluded. The siamese identifiers of the layer will be added to the list.</param>
+        /// <returns>The amount of parameters of the layer.</returns>
+        public int CountParameters(List<object> siameseIDs)
+        {
+            if (!siameseIDs.Contains(this.SiameseID))
+            {
+                siameseIDs.Add(this.siameseID);
+            }
+            return 0;
         }
     }
 }

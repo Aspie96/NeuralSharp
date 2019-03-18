@@ -29,7 +29,7 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents a neural network which works on images.</summary>
-    public class PurelyConvolutionalNN : Sequential<Image, Image>, IImagesLayer
+    public class PurelyConvolutionalNN : Sequential<Image, IImagesLayer, IError<Image>>, IImagesLayer
     {
         private Image error1;
         private Image error2;
@@ -57,7 +57,7 @@ namespace NeuralSharp
         /// <summary>Creates an instance of the <code>PurelyConvolutionalNN</code> class.</summary>
         /// <param name="layers">The layers of the network.</param>
         /// <param name="createIO">Whether the input image and the output image of the network are to be created.</param>
-        public PurelyConvolutionalNN(IEnumerable<IImagesLayer> layers, bool createIO = true) : base(layers.ToArray<IUntypedLayer>())
+        public PurelyConvolutionalNN(ICollection<IImagesLayer> layers, bool createIO = true) : base(layers.ToArray())
         {
             int maxDepth = 0;
             int maxWidth = 0;
@@ -76,43 +76,49 @@ namespace NeuralSharp
                 this.SetInputGetOutput(new Image(layers.ElementAt(0).InputDepth, layers.ElementAt(0).InputWidth, layers.ElementAt(0).InputHeight));
             }
         }
-        
+
         /// <summary>The depth of the input.</summary>
         public int InputDepth
         {
-            get { return ((IImagesLayer)this.Layers.First()).InputDepth; }
+            get { return this.FirstLayer.InputDepth; }
         }
 
         /// <summary>The width of the input.</summary>
         public int InputWidth
         {
-            get { return ((IImagesLayer)this.Layers.First()).InputWidth; }
+            get { return this.FirstLayer.InputWidth; }
         }
 
         /// <summary>The height of the input.</summary>
         public int InputHeight
         {
-            get { return ((IImagesLayer)this.Layers.First()).InputHeight; }
+            get { return this.FirstLayer.InputHeight; }
         }
 
         /// <summary>The depth of the output.</summary>
         public int OutputDepth
         {
-            get { return ((IImagesLayer)this.Layers.Last()).OutputDepth; }
+            get { return this.LastLayer.OutputDepth; }
         }
 
         /// <summary>The width of the output.</summary>
         public int OutputWidth
         {
-            get { return ((IImagesLayer)this.Layers.Last()).OutputWidth; }
+            get { return this.LastLayer.OutputWidth; }
         }
 
         /// <summary>The height of the output.</summary>
         public int OutputHeight
         {
-            get { return ((IImagesLayer)this.Layers.Last()).OutputHeight; }
+            get { return this.LastLayer.OutputHeight; }
         }
-        
+
+        /// <summary>Whether the layers are connected.</summary>
+        public bool LayersConnected
+        {
+            get { return this.layersConnected; }
+        }
+
         /// <summary>Create an object which can be used as output error.</summary>
         /// <returns>The created image.</returns>
         protected override Image NewError()
@@ -139,7 +145,7 @@ namespace NeuralSharp
             this.error2.FromImage(outputError);
             for (int i = this.Layers.Count - 1; i >= 0; i--)
             {
-                ((IImagesLayer)this.Layers[i]).BackPropagate(this.error2, this.error1, learning);
+                this.Layers.ElementAt(i).BackPropagate(this.error2, this.error1, learning);
                 Image aux = this.error1;
                 this.error1 = this.error2;
                 this.error2 = aux;
@@ -155,52 +161,42 @@ namespace NeuralSharp
             this.BackPropagate(outputError, learning);
             inputError.FromImage(this.error2);
         }
-        
+
         /// <summary>Gets the error of the network.</summary>
         /// <param name="output">The actual output.</param>
         /// <param name="expectedOutput">The expected output.</param>
         /// <param name="error">The image to be written the output error into.</param>
+        /// <param name="errorFunction">The error function to be used.</param>
         /// <returns>The output error of the network.</returns>
-        public override double GetError(Image output, Image expectedOutput, Image error)
+        public override double GetError(Image output, Image expectedOutput, Image error, IError<Image> errorFunction)
         {
-            double retVal = 0;
-            for (int i = 0; i < this.OutputDepth; i++)
-            {
-                for (int j = 0; j < this.OutputWidth; j++)
-                {
-                    for (int k = 0; k < this.OutputHeight; k++)
-                    {
-                        error.SetValue(i, j, k, expectedOutput.GetValue(i, j, k) - output.GetValue(i, j, k));
-                        retVal += error.GetValue(i, j, k) * error.GetValue(i, j, k);
-                    }
-                }
-            }
-            return retVal;
+            return errorFunction.GetError(output, expectedOutput, error);
         }
 
         /// <summary>Feeds the network forward and gets its error.</summary>
         /// <param name="input">The image to be copied the input from.</param>
         /// <param name="expectedOutput">The expected output of the network.</param>
         /// <param name="error">The image to be written the error into.</param>
+        /// <param name="errorFunction">The error function to be used.</param>
         /// <param name="learning">Whether the network is being used in a training session.</param>
         /// <returns>The error of the network.</returns>
-        public override double FeedAndGetError(Image input, Image expectedOutput, Image error, bool learning)
+        public override double FeedAndGetError(Image input, Image expectedOutput, Image error, IError<Image> errorFunction, bool learning)
         {
             this.Input.FromImage(input);
             this.Feed(learning);
-            return this.GetError(this.Output, expectedOutput, error);
+            return this.GetError(this.Output, expectedOutput, error, errorFunction);
         }
-        
+
         /// <summary>Creates a siamese of the network.</summary>
         /// <returns>The created instance of the <code>PurelyConvolutionalNN</code> class.</returns>
-        public override IUntypedLayer CreateSiamese()
+        public override ILayer<Image, Image> CreateSiamese()
         {
             return new PurelyConvolutionalNN(this, true);
         }
 
         /// <summary>Creates a clone of the network.</summary>
         /// <returns>The created instance of the <code>PurelyConvolutionalNN</code> class.</returns>
-        public override IUntypedLayer Clone()
+        public override ILayer<Image, Image> Clone()
         {
             return new PurelyConvolutionalNN(this, false);
         }
@@ -210,20 +206,19 @@ namespace NeuralSharp
         /// <param name="output">The output image to be set.</param>
         public override void SetInputAndOutput(Image input, Image output)
         {
-            if (this.layersConnected)
+            Image image = input;
+            if (this.LayersConnected)
             {
-                ((IImagesLayer)this.Layers.First()).SetInputAndOutput(input, ((IImagesLayer)this.Layers.First()).Output);
-                ((IImagesLayer)this.Layers.Last()).SetInputAndOutput(((IImageArrayLayer)this.Layers.Last()).Input, output);
+                this.FirstLayer.SetInputAndOutput(input, this.FirstLayer.Output);
             }
             else
             {
-                Image image = input;
                 for (int i = 0; i < this.Layers.Count - 1; i++)
                 {
-                    image = ((IImagesLayer)this.Layers[i]).SetInputGetOutput(image);
+                    image = this.Layers.ElementAt(i).SetInputGetOutput(image);
                 }
-                ((IImagesLayer)this.Layers.Last()).SetInputAndOutput(image, output);
             }
+            this.LastLayer.SetInputAndOutput(image, output);
         }
 
         /// <summary>Sets the input image of the network and creates and sets an output image.</summary>
@@ -231,45 +226,25 @@ namespace NeuralSharp
         /// <returns>The created output image.</returns>
         public override Image SetInputGetOutput(Image input)
         {
-            if (this.layersConnected)
-            {
-                Image retVal = new Image(this.InputDepth, this.InputWidth, this.InputHeight);
-                ((IImagesLayer)this.Layers.First()).SetInputAndOutput(input, ((IImagesLayer)this.Layers.First()).Output);
-                ((IImagesLayer)this.Layers.Last()).SetInputAndOutput(((IImageArrayLayer)this.Layers.Last()).Input, retVal);
-                return retVal;
-            }
-            Image image = input;
-            foreach (IImagesLayer layer in this.Layers)
-            {
-                image = layer.SetInputGetOutput(image);
-            }
-            return ((IImagesLayer)this.Layers.Last()).Output;
+            Image retVal = new Image(this.OutputDepth, this.OutputWidth, this.OutputHeight);
+            this.SetInputAndOutput(input, retVal);
+            return retVal;
         }
-        
+
         /// <summary>Adds a top layer.</summary>
         /// <param name="layer">The layer to be added.</param>
-        protected override void AddTopLayer(ILayer<Image, Image> layer)
+        protected override void AddTopLayer(IImagesLayer layer)
         {
-            this.Layers.Insert(0, layer);
+            base.AddTopLayer(layer);
+            this.layersConnected = false;
         }
 
         /// <summary>Adds a bottom layer.</summary>
         /// <param name="layer">The layer to be added.</param>
-        protected override void AddBottomLayer(ILayer<Image, Image> layer)
+        protected override void AddBottomLayer(IImagesLayer layer)
         {
-            this.Layers.Add(layer);
-        }
-
-        /// <summary>Removes a top layer.</summary>
-        protected override void RemoveTopLayer()
-        {
-            this.Layers.RemoveAt(0);
-        }
-
-        /// <summary>Removes a bottom layer.</summary>
-        protected override void RemoveBottomLayer()
-        {
-            this.Layers.RemoveAt(this.Layers.Count - 1);
+            base.AddBottomLayer(layer);
+            this.layersConnected = false;
         }
     }
 }

@@ -36,6 +36,7 @@ namespace NeuralSharp
         private int outputSkip;
         private Image input;
         private double[] output;
+        private object siameseID;
 
         /// <summary>Either creates a siamese of the given <code>ImageToArray</code> instance or clones it.</summary>
         /// <param name="original">The original instance to be created a siamese of or cloned.</param>
@@ -45,6 +46,14 @@ namespace NeuralSharp
             this.inputDepth = original.InputDepth;
             this.inputWidth = original.InputWidth;
             this.inputHeight = original.InputHeight;
+            if (siamese)
+            {
+                this.siameseID = original.SiameseID;
+            }
+            else
+            {
+                this.siameseID = new object();
+            }
         }
 
         /// <summary>Creates an instance of the <code>ImageToArray</code> class.</summary>
@@ -110,7 +119,13 @@ namespace NeuralSharp
         {
             get { return 0; }
         }
-        
+
+        /// <summary>The siamese identifier of the layer.</summary>
+        public object SiameseID
+        {
+            get { return this.siameseID; }
+        }
+
         /// <summary>Feeds the layer forward.</summary>
         /// <param name="learning">Whether the layer is being used in a training session.</param>
         public void Feed(bool learning)
@@ -160,19 +175,32 @@ namespace NeuralSharp
             this.SetInputAndOutput(input, retVal);
             return retVal;
         }
-        
+
         /// <summary>Cretes a siamese of the layer.</summary>
         /// <returns>The created instance of the <code>ImageToArray</code> class.</returns>
-        public IUntypedLayer CreateSiamese()
+        public virtual ILayer<Image, double[]> CreateSiamese()
         {
             return new ImageToArray(this, true);
         }
 
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The created instance of the <code>ImageToArray</code> class.</returns>
-        public IUntypedLayer Clone()
+
+        public virtual ILayer<Image, double[]> Clone()
         {
             return new ImageToArray(this, false);
+        }
+
+        /// <summary>Counts the amount of parameters of the layer.</summary>
+        /// <param name="siameseIDs">The siamese identifier to be excluded.</param>
+        /// <returns>The amount of parameters.</returns>
+        public int CountParameters(List<object> siameseIDs)
+        {
+            if (!siameseIDs.Contains(this.SiameseID))
+            {
+                siameseIDs.Add(this.SiameseID);
+            }
+            return 0;
         }
     }
 }

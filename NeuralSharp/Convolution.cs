@@ -47,6 +47,7 @@ namespace NeuralSharp
         private int kernelSide;
         private int stride;
         private int padding;
+        private object siameseID;
 
         /// <summary>Either creates a siamese of the given <code>Convolution</code> instance or clones it.</summary>
         /// <param name="original">The original instance to be created a siamese of or cloned.</param>
@@ -59,7 +60,7 @@ namespace NeuralSharp
             this.outputDepth = original.OutputDepth;
             this.outputWidth = original.OutputWidth;
             this.outputHeight = original.OutputHeight;
-            this.padding = original.Parameters;
+            this.padding = original.padding;
             this.kernelSide = original.kernelSide;
             this.stride = original.stride;
             if (siamese)
@@ -70,6 +71,7 @@ namespace NeuralSharp
                 this.kernelFilters = original.kernelFilters;
                 this.kernelGradients = original.kernelGradients;
                 this.kernelMomentums = original.kernelMomentums;
+                this.siameseID = original.SiameseID;
             }
             else
             {
@@ -80,6 +82,7 @@ namespace NeuralSharp
                 Backbone.RandomizeMatrix(this.kernelFilters, original.OutputDepth, inputDepth * kernelSide * kernelSide, 2.0 / (inputDepth * kernelSide * kernelSide + outputDepth));
                 this.kernelGradients = Backbone.CreateArray<float>(original.OutputDepth, inputDepth * kernelSide * kernelSide);
                 this.kernelMomentums = Backbone.CreateArray<float>(original.OutputDepth, inputDepth * kernelSide * kernelSide);
+                this.siameseID = new object();
             }
         }
         
@@ -124,24 +127,9 @@ namespace NeuralSharp
             this.kernelMomentums = Backbone.CreateArray<float>(depth, inputDepth * kernelSide * kernelSide);
             this.kernelSide = kernelSide;
             this.stride = stride;
+            this.siameseID = new object();
         }
         
-        private float[] SerKernelFilters
-        {
-            get
-            {
-                float[] retVal = new float[this.OutputDepth * this.InputDepth * this.KernelSide * this.KernelSide];
-                Backbone.MatrixToArray(this.kernelFilters, this.OutputDepth, this.InputDepth * this.KernelSide * this.KernelSide, retVal, 0);
-                return retVal;
-            }
-
-            set
-            {
-                this.kernelFilters = Backbone.CreateArray<float>(this.OutputDepth, this.InputDepth * this.KernelSide * this.KernelSide);
-                Backbone.ArrayToMatrix(value, 0, this.kernelFilters, this.OutputDepth, this.InputDepth * this.KernelSide * this.KernelSide);
-            }
-        }
-
         /// <summary>The input image of the layer.</summary>
         public Image Input
         {
@@ -201,13 +189,19 @@ namespace NeuralSharp
         {
             get { return this.stride; }
         }
-        
+
         /// <summary>The amount of parameters of the layer.</summary>
         public int Parameters
         {
-            get { return this.kernelFilters.Length * this.KernelSide * this.KernelSide; }
+            get { return this.kernelFilters.Length + this.biases.Length; }
         }
-        
+
+        /// <summary>The siamese identifier of the layer.</summary>
+        public object SiameseID
+        {
+            get { return this.siameseID; }
+        }
+
         /// <summary>The activation function used by the layer.</summary>
         /// <param name="input">The input of the activation function.</param>
         /// <returns>The output of the activation function.</returns>
@@ -268,16 +262,29 @@ namespace NeuralSharp
         
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The created instance of the <code>Convolution</code> class.</returns>
-        public virtual IUntypedLayer CreateSiamese()
+        public virtual ILayer<Image, Image> CreateSiamese()
         {
             return new Convolution(this, true);
         }
 
         /// <summary>Creates a clone of the layer.</summary>
         /// <returns>The created instance of the <code>Convolution</code> class.</returns>
-        public virtual IUntypedLayer Clone()
+        public virtual ILayer<Image, Image> Clone()
         {
             return new Convolution(this, false);
+        }
+
+        /// <summary>Counts the amount of parameters in the layer.</summary>
+        /// <param name="siameseIDs">The siamese identifier to be excluded. The siamese identifiers of the layer will be added to the list.</param>
+        /// <returns>The amount of parameters of the layer.</returns>
+        public int CountParameters(List<object> siameseIDs)
+        {
+            if (siameseIDs.Contains(this.SiameseID))
+            {
+                return 0;
+            }
+            siameseIDs.Add(this.SiameseID);
+            return this.kernelFilters.Length + this.biases.Length;
         }
     }
 }

@@ -27,71 +27,91 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents a sequential learner.</summary>
-    /// <typeparam name="TIn">The input type.</typeparam>
-    /// <typeparam name="TOut">The output type.</typeparam>
-    public abstract class Sequential<TIn, TOut> : ForwardLearner<TIn, TOut>, ILayer<TIn, TOut> where TIn : class where TOut : class
+    /// <typeparam name="TData">The data type.</typeparam>
+    /// <typeparam name="TLayer">The layer type.</typeparam>
+    /// <typeparam name="TErrFunc">The error function type.</typeparam>
+    public abstract class Sequential<TData, TLayer, TErrFunc> : ForwardLearner<TData, TData, TErrFunc>, ILayer<TData, TData> where TData : class where TLayer : ILayer<TData, TData> where TErrFunc : IError<TData>
     {
-        private List<IUntypedLayer> layers;
-        private ILayerFrom<TIn> firstLayer;
-        private ILayerTo<TOut> lastLayer;
+        private List<TLayer> layers;
+        private object siameseID;
 
         /// <summary>Either creates a siamese of the given <code>Sequential</code> instance or clones is.</summary>
         /// <param name="original">The original instance to be created a siamese or cloned.</param>
         /// <param name="siamese"><code>true</code> if a siamese is to be created, <code>false</code> if a clone is.</param>
-        protected Sequential(Sequential<TIn, TOut> original, bool siamese)
+        public Sequential(Sequential<TData, TLayer, TErrFunc> original, bool siamese)
         {
-            this.layers = new List<IUntypedLayer>();
+            this.layers = new List<TLayer>();
+            this.layers = original.layers.ConvertAll(delegate (TLayer layer)
+            {
+                if (siamese)
+                {
+                    return (TLayer)layer.CreateSiamese();
+                }
+                else
+                {
+                    return (TLayer)layer.Clone();
+                }
+            });
             if (siamese)
             {
-                foreach (IUntypedLayer layer in original.Layers)
-                {
-                    this.layers.Add(layer.CreateSiamese());
-                }
+                this.siameseID = original.SiameseID;
             }
             else
             {
-                foreach (IUntypedLayer layer in original.Layers)
-                {
-                    this.layers.Add(layer.Clone());
-                }
+                this.siameseID = new object();
             }
-            this.firstLayer = (ILayerFrom<TIn>)this.layers.First();
-            this.lastLayer = (ILayerTo<TOut>)this.layers.Last();
         }
 
         /// <summary>Creates an instance of the <code>Sequential</code> class.</summary>
         /// <param name="layers">The layers of the learner.</param>
-        public Sequential(ICollection<IUntypedLayer> layers)
+        public Sequential(ICollection<TLayer> layers)
         {
             this.layers = layers.ToList();
-            this.firstLayer = (ILayerFrom<TIn>)layers.First();
-            this.lastLayer = (ILayerTo<TOut>)layers.Last();
+            this.siameseID = new object();
         }
-        
+
         /// <summary>The layers of the learner.</summary>
-        protected List<IUntypedLayer> Layers
+        protected ICollection<TLayer> Layers
         {
-            get { return this.layers; }
+            get { return this.layers.AsReadOnly(); }
         }
-        
-        /// <summary>The input object of the learner.</summary>
-        public TIn Input
+
+        /// <summary>The first layer of the learner.</summary>
+        public TLayer FirstLayer
         {
-            get { return this.firstLayer.Input; }
+            get { return this.layers[0]; }
+        }
+
+        /// <summary>The last layer of the learner.</summary>
+        public TLayer LastLayer
+        {
+            get { return this.Layers.Last(); }
+        }
+
+        /// <summary>The input object of the learner.</summary>
+        public TData Input
+        {
+            get { return this.layers[0].Input; }
         }
 
         /// <summary>The output object of the learner.</summary>
-        public TOut Output
+        public TData Output
         {
-            get { return this.lastLayer.Output; }
+            get { return this.layers.Last().Output; }
         }
-        
+
+        /// <summary>The siamese identifier of the learner.</summary>
+        public object SiameseID
+        {
+            get { return this.siameseID; }
+        }
+
         /// <summary>The amount of parameters.</summary>
-        public override int Parameters
+        public int Parameters
         {
             get
             {
-                return this.Layers.Sum(delegate (IUntypedLayer layer)
+                return this.Layers.Sum(delegate (TLayer layer)
                 {
                     return layer.Parameters;
                 });
@@ -101,34 +121,46 @@ namespace NeuralSharp
         /// <summary>Sets the input object and the output object of the network.</summary>
         /// <param name="input">The input object to be set.</param>
         /// <param name="output">The output object to be set.</param>
-        public abstract void SetInputAndOutput(TIn input, TOut output);
+        public abstract void SetInputAndOutput(TData input, TData output);
 
         /// <summary>Sets the input object and creates and sets the output object.</summary>
         /// <param name="input">The input object to be set.</param>
         /// <returns>The created output.</returns>
-        public abstract TOut SetInputGetOutput(TIn input);
-        
+        public abstract TData SetInputGetOutput(TData input);
+
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The created siamese.</returns>
-        public abstract IUntypedLayer CreateSiamese();
+        public abstract ILayer<TData, TData> CreateSiamese();
 
         /// <summary>Creates a clone of the layer.</summary>
         /// <returns>The created <code>Sequential</code> instance.</returns>
-        public abstract IUntypedLayer Clone();
+        public abstract ILayer<TData, TData> Clone();
 
         /// <summary>Adds a top layer.</summary>
         /// <param name="layer">The layer to be added.</param>
-        protected abstract void AddTopLayer(ILayer<TIn, TIn> layer);
+        protected virtual void AddTopLayer(TLayer layer)
+        {
+            this.layers.Insert(0, layer);
+        }
 
         /// <summary>Adds a layer to the bottom.</summary>
         /// <param name="layer">The layer to be added.</param>
-        protected abstract void AddBottomLayer(ILayer<TOut, TOut> layer);
+        protected virtual void AddBottomLayer(TLayer layer)
+        {
+            this.layers.Add(layer);
+        }
 
         /// <summary>Removes a top layer.</summary>
-        protected abstract void RemoveTopLayer();
+        protected virtual void RemoveTopLayer()
+        {
+            this.layers.RemoveAt(0);
+        }
 
         /// <summary>Removes a bottom layer.</summary>
-        protected abstract void RemoveBottomLayer();
+        protected virtual void RemoveBottomLayer()
+        {
+            this.layers.RemoveAt(this.layers.Count - 1);
+        }
 
         /// <summary>Feeds the layer forward.</summary>
         /// <param name="learning">Whether the layer is being used in a training session.</param>
@@ -149,6 +181,22 @@ namespace NeuralSharp
             {
                 layer.UpdateWeights(rate, momentum);
             }
+        }
+
+        /// <summary>Counts the amount of parameters of the learner.</summary>
+        /// <param name="siameseIDs">The siamese identifiers to be excluded. The siamese identifiers of the learner will be aded to the list.</param>
+        /// <returns>The amount of parameters.</returns>
+        public int CountParameters(List<object> siameseIDs)
+        {
+            if (siameseIDs.Contains(this.SiameseID))
+            {
+                return 0;
+            }
+            siameseIDs.Add(this.SiameseID);
+            return this.Layers.Sum(delegate (TLayer layer)
+            {
+                return layer.CountParameters(siameseIDs);
+            });
         }
     }
 }

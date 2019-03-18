@@ -75,14 +75,14 @@ namespace NeuralSharp
 
         /// <summary>Cretes a siamese of the layer.</summary>
         /// <returns>The created instance of the <code>LeakyReluNeuronsString</code> class.</returns>
-        public override IUntypedLayer CreateSiamese()
+        public override ILayer<double[], double[]> CreateSiamese()
         {
             return new LeakyReluNeuronsString(this, true);
         }
 
         /// <summary>Creates a clone of the layer.</summary>
         /// <returns>The created instance of the <code>LeakyReluNeuronsString</code> class.</returns>
-        public override IUntypedLayer Clone()
+        public override ILayer<double[], double[]> Clone()
         {
             return new LeakyReluNeuronsString(this, false);
         }

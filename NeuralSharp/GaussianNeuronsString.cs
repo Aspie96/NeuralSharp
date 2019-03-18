@@ -60,14 +60,14 @@ namespace NeuralSharp
 
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The crated instance of the <code>GaussianNeuronsString</code> class.</returns>
-        public override IUntypedLayer CreateSiamese()
+        public override ILayer<double[], double[]> CreateSiamese()
         {
             return new GaussianNeuronsString(this, true);
         }
 
         /// <summary>Creates a clone of the layer.</summary>
         /// <returns>The created instance of the <code>GaussianNeuronsString</code> class.</returns>
-        public override IUntypedLayer Clone()
+        public override ILayer<double[], double[]> Clone()
         {
             return new GaussianNeuronsString(this, false);
         }

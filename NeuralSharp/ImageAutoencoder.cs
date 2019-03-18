@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents an autoencoder.</summary>
-    public class ImageAutoencoder : Autoencoder<Image>
+    public class ImageAutoencoder : Autoencoder<Image, IError<Image>>
     {
         private int depth;
         private int width;
@@ -77,19 +77,20 @@ namespace NeuralSharp
         /// <param name="learning">Whether the autoencoder is being used in a training session.</param>
         public override void BackPropagate(Image outputError, bool learning = true)
         {
-            
+            this.Decoder.BackPropagate(outputError, this.Error, learning);
+            ((ConvolutionalNN)this.Encoder).BackPropagate(this.Error, learning);
         }
         
         /// <summary>Creates a clone of the autoencoder.</summary>
         /// <returns>The created <code>ImageAutoencoder</code> instance.</returns>
-        public override IUntypedLayer Clone()
+        public override ILayer<Image, Image> Clone()
         {
             return new ImageAutoencoder(this, false);
         }
 
         /// <summary>Creates a siamese of the autoencoder.</summary>
         /// <returns>The created <code>ImageAutoencoder</code> instance.</returns>
-        public override IUntypedLayer CreateSiamese()
+        public override ILayer<Image, Image> CreateSiamese()
         {
             return new ImageAutoencoder(this, true);
         }
@@ -110,36 +111,25 @@ namespace NeuralSharp
         /// <param name="input">The image to be copied the input from.</param>
         /// <param name="expectedOutput">The expected output of the autoencoder.</param>
         /// <param name="error">The image to be copied the error into.</param>
+        /// <param name="errorFunction">The error function to be used.</param>
         /// <param name="learning">Whether the autoencoder is being used in a training session.</param>
         /// <returns>The error of the autoencoder.</returns>
-        public override double FeedAndGetError(Image input, Image expectedOutput, Image error, bool learning)
+        public override double FeedAndGetError(Image input, Image expectedOutput, Image error, IError<Image> errorFunction, bool learning)
         {
             this.Input.FromImage(input);
             this.Feed(learning);
-            return this.GetError(this.Output, expectedOutput, error);
+            return this.GetError(this.Output, expectedOutput, error, errorFunction);
         }
 
         /// <summary>Gets the error of the autoencoder, given its actual output and its expected output.</summary>
         /// <param name="output">The actual output of the autoencoder.</param>
         /// <param name="expectedOutput">The expected output of the autoencoder.</param>
         /// <param name="error">The image to be written the error into.</param>
+        /// <param name="errorFunction">The error function to be used.</param>
         /// <returns>The error of the autoencoder.</returns>
-        public override double GetError(Image output, Image expectedOutput, Image error)
+        public override double GetError(Image output, Image expectedOutput, Image error, IError<Image> errorFunction)
         {
-            double retVal = 0.0;
-            for (int i = 0; i < this.Output.Depth; i++)
-            {
-                for (int j = 0; j < this.Output.Width; j++)
-                {
-                    for (int k = 0; k < this.Output.Height; k++)
-                    {
-                        double e = expectedOutput.GetValue(i, j, k) - output.GetValue(i, j, k);
-                        retVal += e * e;
-                        error.SetValue(i, j, k, (float)e);
-                    }
-                }
-            }
-            return retVal;
+            return errorFunction.GetError(output, expectedOutput, error);
         }
 
         /// <summary>Creates an image which can be used as output error.</summary>

@@ -42,6 +42,7 @@ namespace NeuralSharp
         private int kernelSide;
         private int stride;
         private int padding;
+        private object siameseID;
 
         /// <summary>Either creates a siamese of the given <code>RandomConvolution</code> instance or clones it.</summary>
         /// <param name="original">The original instance to be created a siamese of or cloned.</param>
@@ -58,6 +59,14 @@ namespace NeuralSharp
             this.kernelFilters = Backbone.CreateArray<float>(original.OutputDepth, original.InputDepth * original.KernelSide * original.KernelSide);
             this.kernelSide = original.KernelSide;
             this.stride = original.Stride;
+            if (siamese)
+            {
+                this.siameseID = original.SiameseID;
+            }
+            else
+            {
+                this.siameseID = new object();
+            }
         }
 
         /// <summary>Creates an instance of the <code>RandomConvolution</code> class.</summary>
@@ -95,6 +104,7 @@ namespace NeuralSharp
             this.kernelFilters = Backbone.CreateArray<float>(depth, inputDepth * kernelSide * kernelSide);
             this.kernelSide = kernelSide;
             this.stride = stride;
+            this.siameseID = new object();
         }
         
         private float[] SerKernelFilters
@@ -176,9 +186,15 @@ namespace NeuralSharp
         /// <summary>The parameters.</summary>
         public int Parameters
         {
-            get { return this.kernelFilters.Length * this.KernelSide * this.KernelSide; }
+            get { return 0; }
         }
-        
+
+        /// <summary>The siamese identifier of the layer.</summary>
+        public object SiameseID
+        {
+            get { return this.siameseID; }
+        }
+
         /// <summary>The activation function.</summary>
         /// <param name="input">The input.</param>
         /// <returns>The output.</returns>
@@ -234,19 +250,31 @@ namespace NeuralSharp
             this.input = input;
             return this.output = new Image(this.OutputDepth, this.OutputWidth, this.OutputHeight);
         }
-        
+
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The created siamese.</returns>
-        public virtual IUntypedLayer CreateSiamese()
+        public virtual ILayer<Image, Image> CreateSiamese()
         {
             return new RandomConvolution(this, true);
         }
 
         /// <summary>Creates a clone of the layer.</summary>
         /// <returns>The created clone.</returns>
-        public virtual IUntypedLayer Clone()
+        public virtual ILayer<Image, Image> Clone()
         {
             return new RandomConvolution(this, false);
+        }
+
+        /// <summary>Computes the amount of parameters of the layer.</summary>
+        /// <param name="siameseIDs">The siamese identifiers to be excluded.</param>
+        /// <returns>The amount of parameters of the layer.</returns>
+        public int CountParameters(List<object> siameseIDs)
+        {
+            if (!siameseIDs.Contains(this.SiameseID))
+            {
+                siameseIDs.Add(this.SiameseID);
+            }
+            return 0;
         }
     }
 }

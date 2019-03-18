@@ -37,7 +37,8 @@ namespace NeuralSharp
         private int height;
         private bool[] dropped;
         private double dropChance;
-        
+        private object siameseID;
+
         /// <summary>Either creates a siamese of the given <code>ImageDropoutLayer</code> instance or clones it.</summary>
         /// <param name="original">The original instance to be created a siamese of or cloned.</param>
         /// <param name="siamese"><code>true</code> if a siamese is to be created, <code>false</code> if a clone is.</param>
@@ -48,6 +49,14 @@ namespace NeuralSharp
             this.height = original.Height;
             this.dropped = Backbone.CreateArray<bool>(depth * width * height);
             this.dropChance = original.DropChance;
+            if (siamese)
+            {
+                this.siameseID = original.SiameseID;
+            }
+            else
+            {
+                this.siameseID = new object();
+            }
         }
 
         /// <summary>Creates an instance of the <code>ImageDropoutLayer</code> class.</summary>
@@ -68,6 +77,7 @@ namespace NeuralSharp
             }
             this.dropped = Backbone.CreateArray<bool>(depth * width * height);
             this.dropChance = dropChance;
+            this.siameseID = new object();
         }
 
         /// <summary>The input image of the layer.</summary>
@@ -148,6 +158,12 @@ namespace NeuralSharp
             get { return 0; }
         }
 
+        /// <summary>The siamese identifier of the layer.</summary>
+        public object SiameseID
+        {
+            get { return this.siameseID; }
+        }
+
         /// <summary>Feeds the layer forward.</summary>
         /// <param name="learning">Whether the layer is being used in a training session.</param>
         public void Feed(bool learning = false)
@@ -186,19 +202,31 @@ namespace NeuralSharp
             this.input = input;
             return this.output = new Image(this.OutputDepth, this.OutputWidth, this.OutputHeight);
         }
-        
+
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The created instance of the <code>ImageDropoutLayer</code> class.</returns>
-        public virtual IUntypedLayer CreateSiamese()
+        public virtual ILayer<Image, Image> CreateSiamese()
         {
             return new ImageDropoutLayer(this, true);
         }
 
         /// <summary>Creates a clone.</summary>
         /// <returns>The created instance of the <code>ImageDropoutLayer</code> class.</returns>
-        public IUntypedLayer Clone()
+        public virtual ILayer<Image, Image> Clone()
         {
             return new ImageDropoutLayer(this, false);
+        }
+
+        /// <summary>Counts the amount of parameters of the layer.</summary>
+        /// <param name="siameseIDs">The siamese identifiers to be excluded.</param>
+        /// <returns>The amount of parameters of the layer.</returns>
+        public int CountParameters(List<object> siameseIDs)
+        {
+            if (!siameseIDs.Contains(this.SiameseID))
+            {
+                siameseIDs.Add(this.SiameseID);
+            }
+            return 0;
         }
     }
 }

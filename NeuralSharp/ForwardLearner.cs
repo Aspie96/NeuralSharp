@@ -32,11 +32,18 @@ namespace NeuralSharp
     /// <summary>Represents a learner which, given the same inputs, always returns the same output.</summary>
     /// <typeparam name="TIn">The input type of the learner.</typeparam>
     /// <typeparam name="TOut">The output type of the learner.</typeparam>
-    public abstract class ForwardLearner<TIn, TOut> where TIn : class where TOut : class
+    /// <typeparam name="TErrFunc">The error function type of the learner.</typeparam>
+    public abstract class ForwardLearner<TIn, TOut, TErrFunc> where TIn : class where TOut : class where TErrFunc : IError<TOut>
     {
-        /// <summary>The amount of parameters of the learner.</summary>
-        public abstract int Parameters { get; }
-
+        /// <summary>Represents a function which gets learning parameters at each step.</summary>
+        /// <param name="batchSize">The batch size.</param>
+        /// <param name="batchIndex">The batch index.</param>
+        /// <param name="batchesCount">The batches count.</param>
+        /// <param name="epoch">The epoch.</param>
+        /// <param name="learningRate">The learning rate.</param>
+        /// <param name="momentum">The momentum to be used.</param>
+        public delegate void LearningParametersFunction(int batchSize, int batchIndex, int batchesCount, int epoch, out double learningRate, out double momentum);
+        
         /// <summary>Creates an object which can be used as output error.</summary>
         /// <returns>The created object.</returns>
         protected abstract TOut NewError();
@@ -67,17 +74,19 @@ namespace NeuralSharp
         /// <param name="output">The actual output of the learner.</param>
         /// <param name="expectedOutput">The expected output of the learner.</param>
         /// <param name="error">The object to be written the output error into.</param>
+        /// <param name="errorFunction">The error function to be used.</param>
         /// <returns>The output error of the learner.</returns>
-        public abstract double GetError(TOut output, TOut expectedOutput, TOut error);
+        public abstract double GetError(TOut output, TOut expectedOutput, TOut error, TErrFunc errorFunction);
 
         /// <summary>Feeds the learner forward and gets its error, given the expected output.</summary>
         /// <param name="input">The object to be read the input from.</param>
         /// <param name="expectedOutput">The expected output of the learner.</param>
         /// <param name="error">The object to be written the error into.</param>
+        /// <param name="errorFunction">The error function to be used.</param>
         /// <param name="learning">Whether the learner is being used in a training session.</param>
         /// <returns>The error of the learner.</returns>
-        public abstract double FeedAndGetError(TIn input, TOut expectedOutput, TOut error, bool learning);
-        
+        public abstract double FeedAndGetError(TIn input, TOut expectedOutput, TOut error, TErrFunc errorFunction, bool learning);
+
         /// <summary>Gets the best parameters during training.</summary>
         /// <param name="batchSize">The batch size.</param>
         /// <param name="batchIndex">The batch index.</param>
@@ -85,10 +94,10 @@ namespace NeuralSharp
         /// <param name="epoch">The epoch index.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="momentum">The momentum.</param>
-        public virtual void GetRateAndMomentum(int batchSize, int batchIndex, int batchesCount, int epoch, out double learningRate, out double momentum)
+        protected virtual void DefaultLearningParameters(int batchSize, int batchIndex, int batchesCount, int epoch, out double learningRate, out double momentum)
         {
             //learningRate = 0.5 / (1 + batchSize * (batchesCount * epoch + batchIndex + 1) * 0.00006);
-            learningRate = 0.0001;// * Math.Exp(-0.000005 * batchSize * (batchesCount * epoch + batchIndex + 1));
+            learningRate = 0.01;// * Math.Exp(-0.000005 * batchSize * (batchesCount * epoch + batchIndex + 1));
             momentum = 0.0;
         }
 
@@ -98,8 +107,10 @@ namespace NeuralSharp
         /// <param name="maxError">The maximum error to be aimed for.</param>
         /// <param name="maxSteps">The maximum amount of steps.</param>
         /// <param name="batchSize">The batch size to be used.</param>
+        /// <param name="errorFunction">The error function to be used.</param>
+        /// <param name="learningParametersFunction">A function getting the learning parameters at each step.</param>
         /// <returns>Whether the maximum accepted error has been reached.</returns>
-        public virtual double Learn(IEnumerable<TIn> inputs, IEnumerable<TOut> outputs, double maxError, int maxSteps, int batchSize)
+        public virtual double Learn(IEnumerable<TIn> inputs, IEnumerable<TOut> outputs, double maxError, int maxSteps, int batchSize, TErrFunc errorFunction, LearningParametersFunction learningParametersFunction = null)
         {
             int entries = (Math.Min(inputs.Count(), outputs.Count()) / batchSize) * batchSize;
             int[] indices = new int[entries];
@@ -118,11 +129,11 @@ namespace NeuralSharp
                 {
                     for (int j = 0; j < batchSize; j++)
                     {
-                        errorValue += this.FeedAndGetError(inputs.ElementAt(indices[i + j]), outputs.ElementAt(indices[i + j]), error, true);
+                        errorValue += this.FeedAndGetError(inputs.ElementAt(indices[i + j]), outputs.ElementAt(indices[i + j]), error, errorFunction, true);
                         this.BackPropagate(error, true);
-                        
+
                     }
-                    this.GetRateAndMomentum(batchSize, i / batchSize, entries / batchSize, epoch, out double learningRate, out double momentum);
+                    (learningParametersFunction ?? this.DefaultLearningParameters)(batchSize, i / batchSize, entries / batchSize, epoch, out double learningRate, out double momentum);
                     this.UpdateWeights(learningRate * batchSize, momentum);
                 }
                 errorValue /= entries;

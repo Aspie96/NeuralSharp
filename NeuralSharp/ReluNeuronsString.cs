@@ -40,22 +40,19 @@ namespace NeuralSharp
         /// <param name="length">The lenght of the layer.</param>
         /// <param name="createIO">Whether the input array and the output array of the layer are to be created.</param>
         public ReluNeuronsString(int length, bool createIO = false) : base(length, createIO) { }
-        
-        /// <summary>The activation function of the network.</summary>
-        /// <param name="input">The input.</param>
-        /// <returns>The output.</returns>
-        protected override double Activation(double input)
+
+        /// <summary>Creates a siamese of the layer.</summary>
+        /// <returns>The siamese.</returns>
+        public override ILayer<double[], double[]> CreateSiamese()
         {
-            return Math.Max(input, 0.0);
+            return new ReluNeuronsString(this, true);
         }
 
-        /// <summary>The derivative of the activation function.</summary>
-        /// <param name="input">The input of the activation function.</param>
-        /// <param name="output">The output of the activation function.</param>
-        /// <returns>The derivative.</returns>
-        protected override double ActivationDerivative(double input, double output)
+        /// <summary>Creates a clone of the layer.</summary>
+        /// <returns>The clone.</returns>
+        public override ILayer<double[], double[]> Clone()
         {
-            return (output > 0.0 ? 1.0 : 0.0);
+            return new ReluNeuronsString(this, false);
         }
     }
 }

@@ -39,6 +39,7 @@ namespace NeuralSharp
         private double[,] weights;
         private double[,] gradients;
         private double[,] momentum;
+        private object siameseID;
 
         /// <summary>Either creates a siamese of the given <code>ConnectionMatrix</code> instance or clones it.</summary>
         /// <param name="original">The original instance to be created a siamese of or cloned.</param>
@@ -52,6 +53,7 @@ namespace NeuralSharp
                 this.weights = original.Weights;
                 this.gradients = original.Gradients;
                 this.momentum = original.Momentum;
+                this.siameseID = original.SiameseID;
             }
             else
             {
@@ -59,6 +61,7 @@ namespace NeuralSharp
                 Backbone.RandomizeMatrix(this.weights, original.InputSize, original.OutputSize, 2.0 / (original.InputSize + original.OutputSize));
                 this.gradients = Backbone.CreateArray<double>(original.InputSize, original.OutputSize);
                 this.momentum = Backbone.CreateArray<double>(original.InputSize, original.OutputSize);
+                this.siameseID = new object();
             }
         }
 
@@ -81,6 +84,7 @@ namespace NeuralSharp
             Backbone.RandomizeMatrix(this.weights, inputSize, outputSize, 2.0 / (inputSize + outputSize));
             this.gradients = Backbone.CreateArray<double>(inputSize, outputSize);
             this.momentum = Backbone.CreateArray<double>(inputSize, outputSize);
+            this.siameseID = new object();
         }
         
         /// <summary>The input array of the layer.</summary>
@@ -142,7 +146,13 @@ namespace NeuralSharp
         {
             get { return this.weights.Length; }
         }
-        
+
+        /// <summary>The siamese identifier of the layer.</summary>
+        public object SiameseID
+        {
+            get { return this.siameseID; }
+        }
+
         /// <summary>Feeds the layer forward.</summary>
         /// <param name="learning">Whether the layer is being used in a training session. Unused.</param>
         public virtual void Feed(bool learning = false)
@@ -221,16 +231,29 @@ namespace NeuralSharp
         
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The created instance of the <code>ConnectionMatrix</code> class.</returns>
-        public virtual IUntypedLayer CreateSiamese()
+        public virtual ILayer<double[], double[]> CreateSiamese()
         {
             return new ConnectionMatrix(this, true);
         }
 
         /// <summary>Creates a clone of the layer.</summary>
         /// <returns>The created instance of the <code>ConnectionMatrix</code> class.</returns>
-        public virtual IUntypedLayer Clone()
+        public virtual ILayer<double[], double[]> Clone()
         {
             return new ConnectionMatrix(this, false);
+        }
+
+        /// <summary>Counts the amount of parameters of the layer.</summary>
+        /// <param name="siameseIDs">The siamese identifiers to be excluded. The siamese identifiers of the layer will be added to the list.</param>
+        /// <returns>The amount of parameters of the layer.</returns>
+        public int CountParameters(List<object> siameseIDs)
+        {
+            if (siameseIDs.Contains(this.siameseID))
+            {
+                return 0;
+            }
+            siameseIDs.Add(this.siameseID);
+            return this.weights.Length;
         }
     }
 }

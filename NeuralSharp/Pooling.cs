@@ -40,7 +40,8 @@ namespace NeuralSharp
         private int outputHeight;
         private int xScale;
         private int yScale;
-        
+        private object siameseID;
+
         /// <summary>Either creates a siamese of the given <code>Pooling</code> instance or clones it.</summary>
         /// <param name="original">The original instance to be created a siamese of or cloned.</param>
         /// <param name="siamese"><code>true</code> if a siamese is to be crated, <code>false</code> if a clone is.</param>
@@ -54,6 +55,14 @@ namespace NeuralSharp
             this.outputHeight = original.OutputHeight;
             this.xScale = original.XScale;
             this.yScale = original.YScale;
+            if (siamese)
+            {
+                this.siameseID = original.SiameseID;
+            }
+            else
+            {
+                this.siameseID = new object();
+            }
         }
 
         /// <summary>Creates an instance of the <code>Pooling</code> class.</summary>
@@ -78,6 +87,7 @@ namespace NeuralSharp
             }
             this.xScale = xScale;
             this.yScale = yScale;
+            this.siameseID = new object();
         }
 
         /// <summary>The input image of the layer.</summary>
@@ -146,6 +156,12 @@ namespace NeuralSharp
             get { return 0; }
         }
 
+        /// <summary>The siamese identifier of the layer.</summary>
+        public object SiameseID
+        {
+            get { return this.siameseID; }
+        }
+
         /// <summary>Feeds the layer forward.</summary>
         /// <param name="learning">Whether the layer is being used for training purposes.</param>
         public abstract void Feed(bool learning = false);
@@ -155,15 +171,15 @@ namespace NeuralSharp
         /// <param name="inputError">The image to be written the input error into.</param>
         /// <param name="learning">Whether the layer is being used in a training session.</param>
         public abstract void BackPropagate(Image outputError, Image inputError, bool learning);
-        
+
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The created siamese.</returns>
-        public abstract IUntypedLayer CreateSiamese();
+        public abstract ILayer<Image, Image> CreateSiamese();
 
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The created instance of the <code>Pooling</code> class.</returns>
-        public abstract IUntypedLayer Clone();
-        
+        public abstract ILayer<Image, Image> Clone();
+
         /// <summary>Updates the weights of the layer.</summary>
         /// <param name="rate">The learning rate to be used.</param>
         /// <param name="momentum">The momentum to be used.</param>
@@ -185,6 +201,18 @@ namespace NeuralSharp
         {
             this.input = input;
             return this.output = new Image(this.OutputDepth, this.OutputWidth, this.OutputHeight);
+        }
+
+        /// <summary>Counts the amount of parameters of the layer.</summary>
+        /// <param name="siameseIDs">The siamese identifiers to be excluded. The siamese identifier of the layer will be added to the list.</param>
+        /// <returns>The amount of parameters.</returns>
+        public int CountParameters(List<object> siameseIDs)
+        {
+            if (!siameseIDs.Contains(this.SiameseID))
+            {
+                siameseIDs.Add(this.SiameseID);
+            }
+            return 0;
         }
     }
 }

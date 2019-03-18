@@ -29,7 +29,7 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents a convolutional neural network.</summary>
-    public class ConvolutionalNN : ForwardLearner<Image, double[]>, IImageArrayLayer
+    public class ConvolutionalNN : ForwardLearner<Image, double[], IArrayError>, IImageArrayLayer
     {
         private PurelyConvolutionalNN firstPart;
         private ImageToArray i2a;
@@ -37,7 +37,8 @@ namespace NeuralSharp
         private bool layersConnected;
         private double[] errorArray;
         private Image errorImage;
-        
+        private object siameseID;
+
         /// <summary>Either creates a siamese of the given <code>ConvolutionalNN</code> instance or clones it.</summary>
         /// <param name="original">The original instance to be created a siamese of or cloned.</param>
         /// <param name="siamese"><code>true</code> if a siamese is to be created, <code>false</code> otherwise.</param>
@@ -51,12 +52,14 @@ namespace NeuralSharp
                 this.firstPart = (PurelyConvolutionalNN)original.CreateSiamese();
                 this.i2a = (ImageToArray)original.i2a.CreateSiamese();
                 this.fnn = (FeedForwardNN)original.fnn.CreateSiamese();
+                this.siameseID = original.SiameseID;
             }
             else
             {
                 this.firstPart = (PurelyConvolutionalNN)original.firstPart.Clone();
                 this.i2a = (ImageToArray)original.i2a.Clone();
                 this.fnn = (FeedForwardNN)original.fnn.Clone();
+                this.siameseID = new object();
             }
         }
 
@@ -75,6 +78,7 @@ namespace NeuralSharp
             {
                 this.SetInputGetOutput(new Image(firstPart.InputDepth, firstPart.InputWidth, firstPart.InputHeight));
             }
+            this.siameseID = new object();
         }
         
         /// <summary>The input image of the network.</summary>
@@ -120,9 +124,15 @@ namespace NeuralSharp
         }
         
         /// <summary>The amount of parameters of the network.</summary>
-        public override int Parameters
+        public int Parameters
         {
             get { return this.firstPart.Parameters + this.fnn.Parameters; }
+        }
+
+        /// <summary>The siamese identifier of the network.</summary>
+        public object SiameseID
+        {
+            get { return this.siameseID; }
         }
 
         /// <summary>Creates a new array which can be used as output error.</summary>
@@ -256,20 +266,22 @@ namespace NeuralSharp
         /// <param name="expectedSkip">The index of the first entry of the expected array to be used.</param>
         /// <param name="errorArray">The array to be written the output error into.</param>
         /// <param name="errorSkip">The index of the first entry of the output error array to be used.</param>
+        /// <param name="errorFunction">The error function to be used.</param>
         /// <returns>The error of the network.</returns>
-        public virtual double GetError(double[] outputArray, int outputSkip, double[] expectedArray, int expectedSkip, double[] errorArray, int errorSkip)
+        public double GetError(double[] outputArray, int outputSkip, double[] expectedArray, int expectedSkip, double[] errorArray, int errorSkip, IArrayError errorFunction)
         {
-            return Backbone.GetError(outputArray, outputSkip, expectedArray, expectedSkip, errorArray, errorSkip, this.OutputSize);
+            return errorFunction.GetError(outputArray, outputSkip, expectedArray, expectedSkip, errorArray, errorSkip, this.OutputSize);
         }
 
         /// <summary>Gets the error of the network, given its actual and expected output.</summary>
         /// <param name="output">The actual output of the network.</param>
         /// <param name="expectedOuptut">The expected output of the network.</param>
         /// <param name="error">The array to be written the output error into.</param>
+        /// <param name="errorFunction">The error function to be used.</param>
         /// <returns>The error of the network.</returns>
-        public override double GetError(double[] output, double[] expectedOuptut, double[] error)
+        public override double GetError(double[] output, double[] expectedOuptut, double[] error, IArrayError errorFunction)
         {
-            return this.GetError(output, 0, expectedOuptut, 0, error, 0);
+            return errorFunction.GetError(output, expectedOuptut, error, this.OutputSize);
         }
 
         /// <summary>Feeds the network forward and, given the expected output, gets its error.</summary>
@@ -278,38 +290,53 @@ namespace NeuralSharp
         /// <param name="expectedSkip">The index of the first entry of the expected array to be used.</param>
         /// <param name="errorArray">The array to be written the output error into.</param>
         /// <param name="errorSkip">The index of the first entry of the output error array to be written into.</param>
+        /// <param name="errorFunction">The error function to be used.</param>
         /// <param name="learning">Whether the network is being used in a learning session.</param>
         /// <returns>The error of the network.</returns>
-        public double FeedAndGetError(Image input, double[] expectedArray, int expectedSkip, double[] errorArray, int errorSkip, bool learning)
+        public double FeedAndGetError(Image input, double[] expectedArray, int expectedSkip, double[] errorArray, int errorSkip, IArrayError errorFunction, bool learning)
         {
             this.Input.FromImage(input);
             this.Feed(learning);
-            return this.GetError(this.Output, this.OutputSkip, expectedArray, expectedSkip, errorArray, errorSkip);
+            return this.GetError(this.Output, this.OutputSkip, expectedArray, expectedSkip, errorArray, errorSkip, errorFunction);
         }
 
         /// <summary>Feeds the network forward and, given the expected output, gets its error.</summary>
         /// <param name="input">The image to be copied the input from.</param>
         /// <param name="expectedOutput">The expected output of the network.</param>
         /// <param name="error">The array to be written the output error into.</param>
+        /// <param name="errorFunction">The error function to be used.</param>
         /// <param name="learning">Whether the network is being used in a learning session.</param>
         /// <returns>The error of the network.</returns>
-        public override double FeedAndGetError(Image input, double[] expectedOutput, double[] error, bool learning)
+        public override double FeedAndGetError(Image input, double[] expectedOutput, double[] error, IArrayError errorFunction, bool learning)
         {
-            return this.FeedAndGetError(input, expectedOutput, 0, error, 0, learning);
+            return this.FeedAndGetError(input, expectedOutput, 0, error, 0, errorFunction, learning);
         }
-        
+
         /// <summary>Creates a siamese of the network.</summary>
         /// <returns>The created instance of the <code>ConvolutionalNN</code> class.</returns>
-        public virtual IUntypedLayer CreateSiamese()
+        public virtual ILayer<Image, double[]> CreateSiamese()
         {
             return new ConvolutionalNN(this, true);
         }
 
         /// <summary>Creates a clone of the network.</summary>
         /// <returns>The created instance of the <code>ConvolutionalNN</code> class.</returns>
-        public virtual IUntypedLayer Clone()
+        public virtual ILayer<Image, double[]> Clone()
         {
             return new ConvolutionalNN(this, false);
+        }
+
+        /// <summary>Counts the amount of parameters of the network.</summary>
+        /// <param name="siameseIDs">The siamese identifiers to be excluded. The siamese identifiers of the network will be added to the list.</param>
+        /// <returns>The amount of parameters of the network.</returns>
+        public int CountParameters(List<object> siameseIDs)
+        {
+            if (siameseIDs.Contains(this.SiameseID))
+            {
+                return 0;
+            }
+            siameseIDs.Add(this.SiameseID);
+            return this.firstPart.CountParameters(siameseIDs) + this.fnn.CountParameters(siameseIDs);
         }
     }
 }

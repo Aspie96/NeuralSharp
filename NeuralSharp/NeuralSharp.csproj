@@ -39,6 +39,7 @@
     <Reference Include="System.Xml.Serialization" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArrayError.cs" />
     <Compile Include="ArrayImageLayer.cs" />
     <Compile Include="ArrayToImage.cs" />
     <Compile Include="Autoencoder.cs" />
@@ -49,20 +50,20 @@
     <Compile Include="ConvolutionalNN.cs" />
     <Compile Include="DeConvolutionalNN.cs" />
     <Compile Include="DropoutLayer.cs" />
+    <Compile Include="Error.cs" />
     <Compile Include="FeedForwardNN.cs" />
     <Compile Include="ForwardLearner.cs" />
     <Compile Include="GaussianNeuronsString.cs" />
+    <Compile Include="IArrayError.cs" />
     <Compile Include="IArraysLayer.cs" />
+    <Compile Include="IError.cs" />
     <Compile Include="IImageArrayLayer.cs" />
     <Compile Include="IImagesLayer.cs" />
     <Compile Include="ILayer.cs" />
-    <Compile Include="ILayerFrom.cs" />
-    <Compile Include="ILayerTo.cs" />
     <Compile Include="Image.cs" />
     <Compile Include="ImageAutoencoder.cs" />
     <Compile Include="ImageDropoutLayer.cs" />
     <Compile Include="ImageToArray.cs" />
-    <Compile Include="IUntypedLayer.cs" />
     <Compile Include="LeakyReluNeuronsString.cs" />
     <Compile Include="LinearNeuronsString.cs" />
     <Compile Include="MaxPooling.cs" />

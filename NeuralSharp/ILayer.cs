@@ -29,8 +29,34 @@ namespace NeuralSharp
     /// <summary>Represents a layer in a learner.</summary>
     /// <typeparam name="TIn">The input type of the layer.</typeparam>
     /// <typeparam name="TOut">The output type of the layer.</typeparam>
-    public interface ILayer<TIn, TOut> : ILayerFrom<TIn>, ILayerTo<TOut> where TIn : class where TOut : class
+    public interface ILayer<TIn, TOut> where TIn : class where TOut : class
     {
+        /// <summary>The input object of the layer.</summary>
+        TIn Input { get; }
+
+        /// <summary>The output object.</summary>
+        TOut Output { get; }
+
+        /// <summary>The amount of parameters of the layer.</summary>
+        int Parameters { get; }
+
+        /// <summary>The siamese identifier of the layer.</summary>
+        object SiameseID { get; }
+
+        /// <summary>Counts the amount of parameters of the layer.</summary>
+        /// <param name="siameseIDs">The siamese identifiers to be excluded.</param>
+        /// <returns>The amount of parameters of the layer.</returns>
+        int CountParameters(List<object> siameseIDs);
+
+        /// <summary>Feeds the layer forward.</summary>
+        /// <param name="learning">Whether the layer is being used in a training session.</param>
+        void Feed(bool learning = false);
+
+        /// <summary>Updates the weights of the layer.</summary>
+        /// <param name="rate">The learning rate to be used.</param>
+        /// <param name="momentum">The momentum to be used.</param>
+        void UpdateWeights(double rate, double momentum = 0.0);
+        
         /// <summary>Backpropagates the given error trough the layer.</summary>
         /// <param name="outputError">The output error to be backpropagated.</param>
         /// <param name="inputError">The object to be written the input error into.</param>
@@ -46,5 +72,13 @@ namespace NeuralSharp
         /// <param name="input">The input object to be set.</param>
         /// <returns>The created output object.</returns>
         TOut SetInputGetOutput(TIn input);
+
+        /// <summary>Creates a siamese of the layer.</summary>
+        /// <returns>The created siamese.</returns>
+        ILayer<TIn, TOut> CreateSiamese();
+
+        /// <summary>Clones the layer.</summary>
+        /// <returns>The clone.</returns>
+        ILayer<TIn, TOut> Clone();
     }
 }
