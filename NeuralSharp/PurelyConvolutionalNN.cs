@@ -40,9 +40,9 @@ namespace NeuralSharp
         /// <param name="siamese"><code>true</code> if a siamese is to be created, <code>false</code> if a clone is.</param>
         protected PurelyConvolutionalNN(PurelyConvolutionalNN original, bool siamese) : base(original, siamese)
         {
-            int maxDepth = 0;
-            int maxWidth = 0;
-            int maxHeight = 0;
+            int maxDepth = original.Layers.First().InputDepth;
+            int maxWidth = original.Layers.First().InputWidth;
+            int maxHeight = original.Layers.First().InputHeight;
             foreach (IImagesLayer layer in original.Layers)
             {
                 maxDepth = Math.Max(maxDepth, layer.OutputDepth);
@@ -59,9 +59,9 @@ namespace NeuralSharp
         /// <param name="createIO">Whether the input image and the output image of the network are to be created.</param>
         public PurelyConvolutionalNN(ICollection<IImagesLayer> layers, bool createIO = true) : base(layers.ToArray())
         {
-            int maxDepth = 0;
-            int maxWidth = 0;
-            int maxHeight = 0;
+            int maxDepth = layers.ElementAt(0).InputDepth;
+            int maxWidth = layers.ElementAt(0).InputWidth;
+            int maxHeight = layers.ElementAt(0).InputHeight;
             foreach (IImagesLayer layer in layers)
             {
                 maxDepth = Math.Max(maxDepth, layer.OutputDepth);

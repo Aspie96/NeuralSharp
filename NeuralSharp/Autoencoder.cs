@@ -107,7 +107,7 @@ namespace NeuralSharp
         /// <summary>The second part of the autoencoder.</summary>
         protected ILayer<double[], TData> Decoder
         {
-            get { return this.Decoder; }
+            get { return this.decoder; }
         }
 
         /// <summary>The error.</summary>

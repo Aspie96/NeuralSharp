@@ -97,7 +97,7 @@ namespace NeuralSharp
         protected virtual void DefaultLearningParameters(int batchSize, int batchIndex, int batchesCount, int epoch, out double learningRate, out double momentum)
         {
             //learningRate = 0.5 / (1 + batchSize * (batchesCount * epoch + batchIndex + 1) * 0.00006);
-            learningRate = 0.01;// * Math.Exp(-0.000005 * batchSize * (batchesCount * epoch + batchIndex + 1));
+            learningRate = 0.0001;// * Math.Exp(-0.000005 * batchSize * (batchesCount * epoch + batchIndex + 1));
             momentum = 0.0;
         }
 

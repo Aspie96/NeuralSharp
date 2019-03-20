@@ -166,7 +166,7 @@ namespace NeuralSharp
         /// <param name="learning">Whether the layer is being used in a training session.</param>
         public void Feed(bool learning = false)
         {
-            foreach (IArraysLayer layer in this.Layers)
+            foreach (TLayer layer in this.Layers)
             {
                 layer.Feed(learning);
             }
@@ -177,7 +177,7 @@ namespace NeuralSharp
         /// <param name="momentum">The momentum to be used.</param>
         public override void UpdateWeights(double rate, double momentum = 0.0)
         {
-            foreach (IArraysLayer layer in this.Layers)
+            foreach (TLayer layer in this.Layers)
             {
                 layer.UpdateWeights(rate, momentum);
             }

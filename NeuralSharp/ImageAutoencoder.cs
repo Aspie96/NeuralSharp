@@ -47,11 +47,15 @@ namespace NeuralSharp
         /// <param name="encoder">The first part of the autoencoder.</param>
         /// <param name="decoder">The second part of the autoencoder.</param>
         /// <param name="codeSize">The size of the output of the encoder and of the input of the decoder.</param>
-        public ImageAutoencoder(ConvolutionalNN encoder, DeConvolutionalNN decoder, int codeSize) : base(encoder, decoder, codeSize)
+        public ImageAutoencoder(ConvolutionalNN encoder, DeConvolutionalNN decoder, int codeSize, bool createIO = true) : base(encoder, decoder, codeSize)
         {
             this.depth = encoder.InputDepth;
             this.width = encoder.InputWidth;
             this.height = encoder.InputHeight;
+            if (createIO)
+            {
+                this.SetInputGetOutput(new Image(encoder.InputDepth, encoder.InputWidth, encoder.InputHeight));
+            }
         }
 
         /// <summary>The depth of the input and the output of the layer.</summary>
@@ -102,8 +106,7 @@ namespace NeuralSharp
         public override void Feed(Image input, Image output, bool learning = false)
         {
             this.Encoder.Input.FromImage(input);
-            this.Encoder.Feed(learning);
-            this.Encoder.Feed(learning);
+            this.Feed(learning);
             output.FromImage(this.Decoder.Output);
         }
 

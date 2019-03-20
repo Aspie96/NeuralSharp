@@ -590,5 +590,187 @@ namespace NeuralSharp
                 }
             }
         }
+
+        private static void FromMnistFunc(Stream stream, Image[] array, bool normalize, int count, int skip, bool emnist = false)
+        {
+            int width = (stream.ReadByte() << 24) + (stream.ReadByte() << 16) + (stream.ReadByte() << 8) + stream.ReadByte();
+            int height = (stream.ReadByte() << 24) + (stream.ReadByte() << 16) + (stream.ReadByte() << 8) + stream.ReadByte();
+            stream.Position += skip * width * height;
+            for (int i = 0; i < count; i++)
+            {
+                array[i] = new Image(1, width, height, true);
+                if (emnist)
+                {
+                    for (int j = 0; j < width; j++)
+                    {
+                        for (int k = 0; k < height; k++)
+                        {
+                            array[i].SetValue(0, j, k, stream.ReadByte() / 255.0F);
+                        }
+                    }
+                }
+                else
+                {
+                    for (int j = 0; j < height; j++)
+                    {
+                        for (int k = 0; k < width; k++)
+                        {
+                            array[i].SetValue(0, k, j, stream.ReadByte() / 255.0F);
+                        }
+                    }
+                }
+                if (normalize)
+                {
+                    array[i].Normalize();
+                }
+            }
+        }
+
+        /// <summary>Gets images from the MNIST format.</summary>
+        /// <param name="stream">The stream to be read.</param>
+        /// <param name="normalize">Whether to normalize the images.</param>
+        /// <param name="maxCount">The maximum amount of images to be read.</param>
+        /// <param name="skip">The index of the first entry of the dataset to be read.</param>
+        /// <param name="emnist">Whether it is the EMNIST format.</param>
+        /// <returns>The read images.</returns>
+        public static Image[] FromMnist(Stream stream, bool normalize = true, int maxCount = 0, int skip = 0, bool emnist = false)
+        {
+            stream.Position = 4;
+            int count = (stream.ReadByte() << 24) + (stream.ReadByte() << 16) + (stream.ReadByte() << 8) + stream.ReadByte();
+            if (maxCount > 0 && count > maxCount)
+            {
+                count = maxCount;
+            }
+            Image[] retVal = new Image[count];
+            FromMnistFunc(stream, retVal, normalize, count, skip, emnist);
+            return retVal;
+        }
+
+        /// <summary>Gets images from the MNIST dataset.</summary>
+        /// <param name="stream">The stream to be read.</param>
+        /// <param name="array">The array to be written the images into.</param>
+        /// <param name="normalize">Whether to normalize the images.</param>
+        /// <param name="maxCount">The maximum amount of images to be read.</param>
+        /// <param name="skip">The index of the first image of the dataset to be read.</param>
+        /// <param name="emnist">Whether it is the EMNIST format.</param>
+        public static void FromMnist(Stream stream, Image[] array, bool normalize = true, int maxCount = 0, int skip = 0, bool emnist = false)
+        {
+            stream.Position = 4;
+            int count = (stream.ReadByte() << 24) + (stream.ReadByte() << 16) + (stream.ReadByte() << 8) + stream.ReadByte();
+            if (maxCount > 0 && count > maxCount || count > array.Length)
+            {
+                count = Math.Min(maxCount, array.Length);
+            }
+            FromMnistFunc(stream, array, normalize, count, skip, emnist);
+        }
+
+        private static void FromMnistLabelsFunc(Stream stream, double[][] array, bool smart, int count, int skip, int labels)
+        {
+            stream.Position += skip;
+            if (smart)
+            {
+                double[][] vectorLables = new double[labels][];
+                for (int i = 0; i < labels; i++)
+                {
+                    vectorLables[i] = new double[labels];
+                    vectorLables[i][i] = 1.0;
+                }
+                for (int i = 0; i < count; i++)
+                {
+                    array[i] = vectorLables[stream.ReadByte()];
+                }
+            }
+            else
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    array[i] = new double[labels];
+                    array[i][stream.ReadByte()] = 1.0;
+                }
+            }
+        }
+
+        /// <summary>Reads labels form the MNIST format.</summary>
+        /// <param name="stream">The stream to be read the labels from.</param>
+        /// <param name="smart">Whether to save memory.</param>
+        /// <param name="maxCount">The maximum amount of labels to be read.</param>
+        /// <param name="skip">The index of the first label to read.</param>
+        /// <param name="labels">The amount of labels.</param>
+        /// <returns>The read labels.</returns>
+        public static double[][] FromMnistLabels(Stream stream, bool smart = true, int maxCount = 0, int skip = 0, int labels = 10)
+        {
+            stream.Position = 4;
+            int count = (stream.ReadByte() << 24) + (stream.ReadByte() << 16) + (stream.ReadByte() << 8) + stream.ReadByte();
+            if (maxCount > 0 && count > maxCount)
+            {
+                count = maxCount;
+            }
+            double[][] retVal = new double[count][];
+            FromMnistLabelsFunc(stream, retVal, smart, count, skip, labels);
+            return retVal;
+        }
+
+        /// <summary>Reads labels from the MNIST format.</summary>
+        /// <param name="stream">The stream to be read the labels from.</param>
+        /// <param name="array">The array to be written the labels into.</param>
+        /// <param name="smart">Whether to save space.</param>
+        /// <param name="maxCount">The maximum amount of read labels.</param>
+        /// <param name="skip">The index of the first label to be read.</param>
+        /// <param name="labels">The amount of labels.</param>
+        public static void FromMnistLabels(Stream stream, double[][] array, bool smart = true, int maxCount = 0, int skip = 0, int labels = 10)
+        {
+            stream.Position = 4;
+            int count = (stream.ReadByte() << 24) + (stream.ReadByte() << 16) + (stream.ReadByte() << 8) + stream.ReadByte();
+            if (maxCount > 0 && count > maxCount || count > array.Length)
+            {
+                count = Math.Min(array.Length, maxCount);
+            }
+            stream.Position += skip;
+            FromMnistLabelsFunc(stream, array, smart, count, skip, labels);
+        }
+
+        /// <summary>Reads images from the MNIST dataset.</summary>
+        /// <param name="fileName">The path of the dataset.</param>
+        /// <param name="normalize">Whether to normalize the images.</param>
+        /// <param name="maxCount">The maximum amount of images to be read.</param>
+        /// <param name="skip">The index of the first entry to be read.</param>
+        /// <param name="emnist">Whether it's the EMNIST dataset.</param>
+        /// <returns>The read images.</returns>
+        public static Image[] FromMnist(string fileName, bool normalize = true, int maxCount = 0, int skip = 0, bool emnist = false)
+        {
+            FileStream fs = new FileStream(fileName, FileMode.Open);
+            Image[] retVal = Image.FromMnist(fs, normalize, maxCount, skip, emnist);
+            fs.Close();
+            return retVal;
+        }
+
+        /// <summary>Reads labels from the MNIST dataset.</summary>
+        /// <param name="fileName">The path of the dataset.</param>
+        /// <param name="smart">Whether to save space.</param>
+        /// <param name="maxCount">The maximum amount of images to be read.</param>
+        /// <param name="skip">The index of the first label to be read.</param>
+        /// <param name="labels">The amount of labels.</param>
+        /// <returns>The read labels.</returns>
+        public static double[][] FromMnistLabels(string fileName, bool smart = true, int maxCount = 0, int skip = 0, int labels = 10)
+        {
+            FileStream fs = new FileStream(fileName, FileMode.Open);
+            double[][] retVal = Image.FromMnistLabels(fs, smart, maxCount, skip, labels);
+            fs.Close();
+            return retVal;
+        }
+
+        /// <summary>Reads images from the MNIST dataset.</summary>
+        /// <param name="fileName">The path of the dataset.</param>
+        /// <param name="array">The array to be written the images into.</param>
+        /// <param name="normalize">Whether to normalize the images.</param>
+        /// <param name="maxCount">The maximum amount of images to be read.</param>
+        /// <param name="skip">The index of the first image to read.</param>
+        /// <param name="emnist">Whether it's the EMNIST dataset.</param>
+        public static void FromMnist(string fileName, Image[] array, bool normalize = true, int maxCount = 0, int skip = 0, bool emnist = false)
+        {
+            FileStream fs = new FileStream(fileName, FileMode.Open);
+            Image.FromMnist(fs, array, normalize, maxCount, skip, emnist);
+            fs.Close();
+        }
     }
 }

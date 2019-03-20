@@ -387,8 +387,8 @@ namespace NeuralSharp
                         {
                             for (int m = ((k - padding) % scale + scale) % scale; m < kernelSide; m += scale)
                             {
-                                int inputX = (j * stride - padding) / scale + l;
-                                int inputY = (k * stride - padding) / scale + m;
+                                int inputX = (j * stride - padding + l) / scale;
+                                int inputY = (k * stride - padding + m) / scale;
                                 if (0 <= inputX && inputX < inputWidth && 0 <= inputY && inputY < inputHeight)
                                 {
                                     for (int n = 0; n < inputDepth; n++)
@@ -421,8 +421,8 @@ namespace NeuralSharp
                         {
                             for (int m = k % stride; m < kernelSide; m += stride)
                             {
-                                int outputX = j * scale - l + padding;
-                                int outputY = k * scale - m + padding;
+                                int outputX = (j * scale - l + padding) / stride;
+                                int outputY = (k * scale - m + padding) / stride;
                                 if (0 <= outputX && outputX < outputWidth && 0 <= outputY && outputY < outputHeight)
                                 {
                                     for (int n = 0; n < outputDepth; n++)

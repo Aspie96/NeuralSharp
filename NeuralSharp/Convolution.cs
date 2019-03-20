@@ -47,6 +47,7 @@ namespace NeuralSharp
         private int kernelSide;
         private int stride;
         private int padding;
+        private int scale;
         private object siameseID;
 
         /// <summary>Either creates a siamese of the given <code>Convolution</code> instance or clones it.</summary>
@@ -63,6 +64,7 @@ namespace NeuralSharp
             this.padding = original.padding;
             this.kernelSide = original.kernelSide;
             this.stride = original.stride;
+            this.scale = original.scale;
             if (siamese)
             {
                 this.biases = original.biases;
@@ -85,7 +87,7 @@ namespace NeuralSharp
                 this.siameseID = new object();
             }
         }
-        
+
         /// <summary>Creates an instance of the <code>Convolution</code> class.</summary>
         /// <param name="inputDepth">The depth of the input of the layer.</param>
         /// <param name="inputWidth">The width of the input of the layer.</param>
@@ -93,9 +95,10 @@ namespace NeuralSharp
         /// <param name="depth">The depth of the output of the layer.</param>
         /// <param name="kernelSide">The side of the kernel to be used.</param>
         /// <param name="stride">The stride to be used.</param>
+        /// <param name="scale">The scale factor.</param>
         /// <param name="padding"><code>true</code> if padding is to be used, <code>false</code> otherwise.</param>
         /// <param name="createIO">Whether the input image and the output image of the layer are to be created.</param>
-        public Convolution(int inputDepth, int inputWidth, int inputHeight, int depth, int kernelSide, int stride, bool padding, bool createIO = false)
+        public Convolution(int inputDepth, int inputWidth, int inputHeight, int depth, int kernelSide, bool padding, int stride = 1, int scale = 1, bool createIO = false)
         {
             this.inputDepth = inputDepth;
             this.inputWidth = inputWidth;
@@ -103,14 +106,14 @@ namespace NeuralSharp
             this.outputDepth = depth;
             if (padding)
             {
-                this.outputWidth = inputWidth;
-                this.outputHeight = inputHeight;
+                this.outputWidth = inputWidth * scale;
+                this.outputHeight = inputHeight * scale;
                 this.padding = (kernelSide - 1) / 2;
             }
             else
             {
-                this.outputWidth = inputWidth - kernelSide + 1;
-                this.outputHeight = inputHeight - kernelSide + 1;
+                this.outputWidth = inputWidth * scale - kernelSide + 1;
+                this.outputHeight = inputHeight *scale - kernelSide + 1;
                 this.padding = 0;
             }
             if (createIO)
@@ -127,6 +130,7 @@ namespace NeuralSharp
             this.kernelMomentums = Backbone.CreateArray<float>(depth, inputDepth * kernelSide * kernelSide);
             this.kernelSide = kernelSide;
             this.stride = stride;
+            this.scale = scale;
             this.siameseID = new object();
         }
         
@@ -222,7 +226,7 @@ namespace NeuralSharp
         /// <param name="learning">Whether the layer is being used in a training session. Unused.</param>
         public void Feed(bool learning = false)
         {
-            Backbone.ApplyConvolution(this.biases, this.input.Raw, this.InputDepth, this.InputWidth, this.InputHeight, this.output.Raw, this.OutputDepth, this.OutputWidth, this.OutputHeight, this.kernelFilters, this.kernelSide, this.Stride, 1, this.padding, this.ActivationFunction);
+            Backbone.ApplyConvolution(this.biases, this.input.Raw, this.InputDepth, this.InputWidth, this.InputHeight, this.output.Raw, this.OutputDepth, this.OutputWidth, this.OutputHeight, this.kernelFilters, this.kernelSide, this.Stride, this.scale, this.padding, this.ActivationFunction);
         }
 
         /// <summary>Backpropagates the given error trough the layer.</summary>
@@ -231,7 +235,7 @@ namespace NeuralSharp
         /// <param name="learning">Whether the layer is being used in a training session.</param>
         public void BackPropagate(Image outputError, Image inputError, bool learning)
         {
-            Backbone.BackpropagateConvolution(this.biases, this.biasesDeltas, this.input.Raw, this.InputDepth, this.InputWidth, this.InputHeight, this.output.Raw, this.OutputDepth, this.OutputWidth, this.OutputHeight, this.kernelFilters, this.kernelSide, this.Stride, 1, this.padding, outputError.Raw, outputError.Depth, outputError.Width, outputError.Height, inputError.Raw, inputError.Depth, inputError.Width, inputError.Height, this.ActivationDerivative, this.kernelGradients, learning);
+            Backbone.BackpropagateConvolution(this.biases, this.biasesDeltas, this.input.Raw, this.InputDepth, this.InputWidth, this.InputHeight, this.output.Raw, this.OutputDepth, this.OutputWidth, this.OutputHeight, this.kernelFilters, this.kernelSide, this.Stride, this.scale, this.padding, outputError.Raw, outputError.Depth, outputError.Width, outputError.Height, inputError.Raw, inputError.Depth, inputError.Width, inputError.Height, this.ActivationDerivative, this.kernelGradients, learning);
         }
 
         /// <summary>Updates the weights of the layer.</summary>
