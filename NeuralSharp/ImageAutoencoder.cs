@@ -105,9 +105,9 @@ namespace NeuralSharp
         /// <param name="learning">Whether the autoencoder is being used in a training session.</param>
         public override void Feed(Image input, Image output, bool learning = false)
         {
-            this.Encoder.Input.FromImage(input);
+            this.Input.FromImage(input);
             this.Feed(learning);
-            output.FromImage(this.Decoder.Output);
+            output.FromImage(this.Output);
         }
 
         /// <summary>Feeds the autoencoder forward and gets its error, given its expected output.</summary>
