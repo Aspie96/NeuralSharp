@@ -168,7 +168,7 @@ namespace NeuralSharp
         /// <param name="error">The image to be written the output error into.</param>
         /// <param name="errorFunction">The error function to be used.</param>
         /// <returns>The output error of the network.</returns>
-        public override double GetError(Image output, Image expectedOutput, Image error, IError<Image> errorFunction)
+        public override float GetError(Image output, Image expectedOutput, Image error, IError<Image> errorFunction)
         {
             return errorFunction.GetError(output, expectedOutput, error);
         }
@@ -180,7 +180,7 @@ namespace NeuralSharp
         /// <param name="errorFunction">The error function to be used.</param>
         /// <param name="learning">Whether the network is being used in a training session.</param>
         /// <returns>The error of the network.</returns>
-        public override double FeedAndGetError(Image input, Image expectedOutput, Image error, IError<Image> errorFunction, bool learning)
+        public override float FeedAndGetError(Image input, Image expectedOutput, Image error, IError<Image> errorFunction, bool learning)
         {
             this.Input.FromImage(input);
             this.Feed(learning);

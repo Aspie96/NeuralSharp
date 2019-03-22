@@ -43,7 +43,7 @@ namespace NeuralSharp
         
         /// <summary>Applies the softmax function.</summary>
         /// <param name="array">The array to be applied the softmax function to.</param>
-        public static void Softmax(double[] array)
+        public static void Softmax(float[] array)
         {
             SoftmaxNeuronsString.Softmax(array, array);
         }
@@ -51,12 +51,12 @@ namespace NeuralSharp
         /// <summary>Applies the softmax function.</summary>
         /// <param name="array">The input array.</param>
         /// <param name="output">The output array.</param>
-        public static void Softmax(double[] array, double[] output)
+        public static void Softmax(float[] array, float[] output)
         {
-            double expSum = 0.0;
+            float expSum = 0.0F;
             for (int i = 0; i < array.Length; i++)
             {
-                expSum += output[i] = Math.Exp(array[i]);
+                expSum += output[i] =(float)Math.Exp(array[i]);
             }
             for (int i = 0; i < array.Length; i++)
             {
@@ -67,7 +67,7 @@ namespace NeuralSharp
         /// <summary>Applies the derivative of the softmax function.</summary>
         /// <param name="array">The input.</param>
         /// <param name="output">The output.</param>
-        public static void SoftmaxDerivative(double[] array, double[,] output)
+        public static void SoftmaxDerivative(float[] array, float[,] output)
         {
             for (int i = 0; i < array.Length; i++)
             {
@@ -75,7 +75,7 @@ namespace NeuralSharp
                 {
                     output[i, j] = -array[i] * array[j];
                 }
-                output[i, i] = array[i] * (1.0 - array[i]);
+                output[i, i] = array[i] * (1.0F - array[i]);
             }
         }
 
@@ -85,7 +85,7 @@ namespace NeuralSharp
         /// <param name="inputErrorArray">The array to be written the input error into.</param>
         /// <param name="inputErrorSkip">The index of the first entry of the input error to be used.</param>
         /// <param name="learning">Whether the layer is being used in a learning session.</param>
-        public override void BackPropagate(double[] outputErrorArray, int outputErrorSkip, double[] inputErrorArray, int inputErrorSkip, bool learning)
+        public override void BackPropagate(float[] outputErrorArray, int outputErrorSkip, float[] inputErrorArray, int inputErrorSkip, bool learning)
         {
             Backbone.BackpropagateSoftmax(this.Input, this.InputSkip, this.Output, this.OutputSkip, this.Length, outputErrorArray, outputErrorSkip, inputErrorArray, inputErrorSkip, learning);
         }
@@ -99,14 +99,14 @@ namespace NeuralSharp
 
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The created instance of the <code>SoftmaxNeuronsString</code> class.</returns>
-        public override ILayer<double[], double[]> CreateSiamese()
+        public override ILayer<float[], float[]> CreateSiamese()
         {
             return new SoftmaxNeuronsString(this, true);
         }
 
         /// <summary>Creates a clone of the layer.</summary>
         /// <returns>The created instance of the <code>SoftmaxNeuronsString</code> class.</returns>
-        public override ILayer<double[], double[]> Clone()
+        public override ILayer<float[], float[]> Clone()
         {
             return new SoftmaxNeuronsString(this, false);
         }

@@ -32,9 +32,9 @@ namespace NeuralSharp
     /// <typeparam name="TErrFunc">The error function type.</typeparam>
     public abstract class Autoencoder<TData, TErrFunc> : ForwardLearner<TData, TData, TErrFunc>, ILayer<TData, TData> where TData : class where TErrFunc : IError<TData>
     {
-        private ILayer<TData, double[]> encoder;
-        private ILayer<double[], TData> decoder;
-        private double[] error;
+        private ILayer<TData, float[]> encoder;
+        private ILayer<float[], TData> decoder;
+        private float[] error;
         private int codeSize;
         private object siameseID;
 
@@ -48,7 +48,7 @@ namespace NeuralSharp
                 this.encoder = original.encoder.CreateSiamese();
                 this.decoder = original.decoder.CreateSiamese();
                 this.codeSize = original.CodeSize;
-                this.error = Backbone.CreateArray<double>(original.CodeSize);
+                this.error = Backbone.CreateArray<float>(original.CodeSize);
                 this.siameseID = original.SiameseID;
             }
             else
@@ -56,7 +56,7 @@ namespace NeuralSharp
                 this.encoder = original.encoder.Clone();
                 this.decoder = original.decoder.Clone();
                 this.codeSize = original.CodeSize;
-                this.error = Backbone.CreateArray<double>(original.CodeSize);
+                this.error = Backbone.CreateArray<float>(original.CodeSize);
                 this.siameseID = new object();
             }
         }
@@ -65,12 +65,12 @@ namespace NeuralSharp
         /// <param name="encoder">The first part of the autoencoder.</param>
         /// <param name="decoder">The second part of the autoencoder.</param>
         /// <param name="codeSize">The lenght of the output of the first part of the autoencoder and the input of the second.</param>
-        public Autoencoder(ILayer<TData, double[]> encoder, ILayer<double[], TData> decoder, int codeSize)
+        public Autoencoder(ILayer<TData, float[]> encoder, ILayer<float[], TData> decoder, int codeSize)
         {
             this.encoder = encoder;
             this.decoder = decoder;
             this.codeSize = codeSize;
-            this.error = Backbone.CreateArray<double>(codeSize);
+            this.error = Backbone.CreateArray<float>(codeSize);
             this.siameseID = new object();
         }
 
@@ -99,19 +99,19 @@ namespace NeuralSharp
         }
 
         /// <summary>The first part of the autoencoder.</summary>
-        protected ILayer<TData, double[]> Encoder
+        protected ILayer<TData, float[]> Encoder
         {
             get { return this.encoder; }
         }
 
         /// <summary>The second part of the autoencoder.</summary>
-        protected ILayer<double[], TData> Decoder
+        protected ILayer<float[], TData> Decoder
         {
             get { return this.decoder; }
         }
 
         /// <summary>The error.</summary>
-        protected double[] Error
+        protected float[] Error
         {
             get { return this.error; }
         }
@@ -153,7 +153,7 @@ namespace NeuralSharp
         /// <param name="output">The output object to be set.</param>
         public void SetInputAndOutput(TData input, TData output)
         {
-            double[] array = this.encoder.SetInputGetOutput(input);
+            float[] array = this.encoder.SetInputGetOutput(input);
             this.decoder.SetInputAndOutput(array, output);
         }
 
@@ -162,14 +162,14 @@ namespace NeuralSharp
         /// <returns>The created output object.</returns>
         public TData SetInputGetOutput(TData input)
         {
-            double[] array = this.encoder.SetInputGetOutput(input);
+            float[] array = this.encoder.SetInputGetOutput(input);
             return this.decoder.SetInputGetOutput(array);
         }
 
         /// <summary>Updates the weights of the learner.</summary>
         /// <param name="rate">The learning rate to be used.</param>
         /// <param name="momentum">The momentum to be used.</param>
-        public override void UpdateWeights(double rate, double momentum = 0)
+        public override void UpdateWeights(float rate, float momentum = 0)
         {
             this.encoder.UpdateWeights(rate, momentum);
             this.decoder.UpdateWeights(rate, momentum);

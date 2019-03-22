@@ -36,7 +36,7 @@ namespace NeuralSharp
         private int outputWidth;
         private int outputHeight;
         private Image output;
-        private double[] input;
+        private float[] input;
         private object siameseID;
 
         /// <summary>Either creates a siamese of the given <code>ArrayToImage</code> instance or clones it.</summary>
@@ -71,13 +71,13 @@ namespace NeuralSharp
             this.outputHeight = outputHeight;
             if (createIO)
             {
-                this.SetInputGetOutput(Backbone.CreateArray<double>(this.inputSize));
+                this.SetInputGetOutput(Backbone.CreateArray<float>(this.inputSize));
             }
             this.siameseID = new object();
         }
 
         /// <summary>The input array of the layer.</summary>
-        public double[] Input
+        public float[] Input
         {
             get { return this.input; }
         }
@@ -141,7 +141,7 @@ namespace NeuralSharp
         /// <param name="outputError">The output error to be backpropagated.</param>
         /// <param name="inputError">The array to be written the input error into.</param>
         /// <param name="learning">Whether the layer is being used in a training session. Unused.</param>
-        public void BackPropagate(Image outputError, double[] inputError, bool learning)
+        public void BackPropagate(Image outputError, float[] inputError, bool learning)
         {
             outputError.ToArray(inputError);
         }
@@ -149,13 +149,13 @@ namespace NeuralSharp
         /// <summary>Updates the weights of the layer. Does nothing.</summary>
         /// <param name="rate">The learning rate to be used.</param>
         /// <param name="momentum">The momentum to be used.</param>
-        public void UpdateWeights(double rate, double momentum = 0.0) { }
+        public void UpdateWeights(float rate, float momentum = 0.0F) { }
 
         /// <summary>Sets the input array and the output image of the layer.</summary>
         /// <param name="inputArray">The input array to be set.</param>
         /// <param name="inputSkip">The index of the first entry of the given array to be used.</param>
         /// <param name="output">The output image to be set.</param>
-        public void SetInputAndOutput(double[] inputArray, int inputSkip, Image output)
+        public void SetInputAndOutput(float[] inputArray, int inputSkip, Image output)
         {
             this.input = inputArray;
             this.inputSkip = inputSkip;
@@ -165,7 +165,7 @@ namespace NeuralSharp
         /// <summary>Sets the input array and the output image of the layer.</summary>
         /// <param name="input">The input array to be set.</param>
         /// <param name="output">The output image to be set.</param>
-        public void SetInputAndOutput(double[] input, Image output)
+        public void SetInputAndOutput(float[] input, Image output)
         {
             this.SetInputAndOutput(input, 0, output);
         }
@@ -173,7 +173,7 @@ namespace NeuralSharp
         /// <summary>Sets the input array of the layer and creates and sets an output image.</summary>
         /// <param name="input">The input array to be set.</param>
         /// <returns>The created output image.</returns>
-        public Image SetInputGetOutput(double[] input)
+        public Image SetInputGetOutput(float[] input)
         {
             Image retVal = new Image(this.OutputDepth, this.OutputWidth, this.OutputHeight);
             this.SetInputAndOutput(input, retVal);
@@ -182,14 +182,14 @@ namespace NeuralSharp
         
         /// <summary>Creates a siamese of this layer.</summary>
         /// <returns>The created <code>ArrayToImage</code> instance.</returns>
-        public virtual ILayer<double[], Image> CreateSiamese()
+        public virtual ILayer<float[], Image> CreateSiamese()
         {
             return new ArrayToImage(this, true);
         }
 
         /// <summary>Creates a clone of this layer.</summary>
         /// <returns>The created <code>ArrayToImage</code> instance.</returns>
-        public virtual ILayer<double[], Image> Clone()
+        public virtual ILayer<float[], Image> Clone()
         {
             return new ArrayToImage(this, false);
         }

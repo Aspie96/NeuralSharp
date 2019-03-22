@@ -175,7 +175,7 @@ namespace NeuralSharp
         /// <summary>Updates the weights of the learner.</summary>
         /// <param name="rate">The learning rate to be used.</param>
         /// <param name="momentum">The momentum to be used.</param>
-        public override void UpdateWeights(double rate, double momentum = 0.0)
+        public override void UpdateWeights(float rate, float momentum = 0.0F)
         {
             foreach (TLayer layer in this.Layers)
             {

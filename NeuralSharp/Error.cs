@@ -15,7 +15,7 @@ namespace NeuralSharp
         /// <param name="expectedOutput">The expected output.</param>
         /// <param name="error">The object to be written the error into.</param>
         /// <returns>The error.</returns>
-        public delegate double ErrorFunction(T output, T expectedOutput, T error);
+        public delegate float ErrorFunction(T output, T expectedOutput, T error);
 
         private ErrorFunction errorFunction;
         
@@ -31,7 +31,7 @@ namespace NeuralSharp
         /// <param name="expectedOutput">The expected output.</param>
         /// <param name="error">The object to be written the error into.</param>
         /// <returns>The error.</returns>
-        public double GetError(T output, T expectedOutput, T error)
+        public float GetError(T output, T expectedOutput, T error)
         {
             return this.errorFunction(output, expectedOutput, error);
         }

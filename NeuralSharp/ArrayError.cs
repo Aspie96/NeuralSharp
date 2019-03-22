@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents an error function on an array.</summary>
-    public class ArrayError : Error<double[]>, IArrayError
+    public class ArrayError : Error<float[]>, IArrayError
     {
         /// <summary>Represents an error function on an array.</summary>
         /// <param name="outputArray">The output.</param>
@@ -38,13 +38,13 @@ namespace NeuralSharp
         /// <param name="errorSkip">The index of the first entry of the error array to be used.</param>
         /// <param name="length">The lenght of the output.</param>
         /// <returns>The error.</returns>
-        public delegate double ArrayErrorFunction(double[] outputArray, int outputSkip, double[] expectedOutputArray, int expectedOutputSkip, double[] errorArray, int errorSkip, int length);
+        public delegate float ArrayErrorFunction(float[] outputArray, int outputSkip, float[] expectedOutputArray, int expectedOutputSkip, float[] errorArray, int errorSkip, int length);
 
         private ArrayErrorFunction arrayErrorFunction;
         
         /// <summary>Creates an instance of the <code>ArrayError</code> class.</summary>
         /// <param name="arrayErrorFunction">The error function to be used.</param>
-        public ArrayError(ArrayErrorFunction arrayErrorFunction) : base(delegate(double[] output, double[] expected, double[] error)
+        public ArrayError(ArrayErrorFunction arrayErrorFunction) : base(delegate(float[] output, float[] expected, float[] error)
         {
             return arrayErrorFunction(output, 0, expected, 0, error, 0, Math.Min(output.Length, Math.Min(expected.Length, error.Length)));
         })
@@ -61,7 +61,7 @@ namespace NeuralSharp
         /// <param name="errorSkip">The index of the first entry of the error array to be used.</param>
         /// <param name="length">The lenght of the output.</param>
         /// <returns>The error.</returns>
-        public double GetError(double[] outputArray, int outputSkip, double[] expectedOutputArray, int expectedOutputSkip, double[] errorArray, int errorSkip, int length)
+        public float GetError(float[] outputArray, int outputSkip, float[] expectedOutputArray, int expectedOutputSkip, float[] errorArray, int errorSkip, int length)
         {
             return this.arrayErrorFunction(outputArray, outputSkip, expectedOutputArray, expectedOutputSkip, errorArray, errorSkip, length);
         }
@@ -72,7 +72,7 @@ namespace NeuralSharp
         /// <param name="errorArray">The array to be written the errro into.</param>
         /// <param name="length">The lenght of the output.</param>
         /// <returns>The error.</returns>
-        public double GetError(double[] outputArray, double[] expectedOutputArray, double[] errorArray, int length)
+        public float GetError(float[] outputArray, float[] expectedOutputArray, float[] errorArray, int length)
         {
             return this.arrayErrorFunction(outputArray, 0, expectedOutputArray, 0, errorArray, 0, length);
         }

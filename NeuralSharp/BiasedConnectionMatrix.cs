@@ -31,9 +31,9 @@ namespace NeuralSharp
     /// <summary>Represents a connection matrix which uses bias.</summary>
     public class BiasedConnectionMatrix : ConnectionMatrix
     {
-        private double[] biases;
-        private double[] biasGradients;
-        private double[] biasMomentum;
+        private float[] biases;
+        private float[] biasGradients;
+        private float[] biasMomentum;
         
         /// <summary>Either creates a siamese of the given <code>BiasedConnectionMatrix</code> instance or clones it.</summary>
         /// <param name="original">The original instance to be created a siamese of or cloned.</param>
@@ -48,9 +48,9 @@ namespace NeuralSharp
             }
             else
             {
-                this.biases = Backbone.CreateArray<double>(original.OutputSize);
-                this.biasGradients = Backbone.CreateArray<double>(original.OutputSize);
-                this.biasMomentum = Backbone.CreateArray<double>(original.OutputSize);
+                this.biases = Backbone.CreateArray<float>(original.OutputSize);
+                this.biasGradients = Backbone.CreateArray<float>(original.OutputSize);
+                this.biasMomentum = Backbone.CreateArray<float>(original.OutputSize);
             }
         }
 
@@ -60,9 +60,9 @@ namespace NeuralSharp
         /// <param name="createIO">Whether the input array and the output array are to be created.</param>
         public BiasedConnectionMatrix(int inputSize, int outputSize, bool createIO = false) : base(inputSize, outputSize, createIO)
         {
-            this.biases = Backbone.CreateArray<double>(this.OutputSize);
-            this.biasGradients = Backbone.CreateArray<double>(this.OutputSize);
-            this.biasMomentum = Backbone.CreateArray<double>(this.OutputSize);
+            this.biases = Backbone.CreateArray<float>(this.OutputSize);
+            this.biasGradients = Backbone.CreateArray<float>(this.OutputSize);
+            this.biasMomentum = Backbone.CreateArray<float>(this.OutputSize);
         }
         
         /// <summary>Feeds the layer forward.</summary>
@@ -78,7 +78,7 @@ namespace NeuralSharp
         /// <param name="inputErrorArray">The array to be written the input error into.</param>
         /// <param name="inputErrorSkip">The index of the first position of the input error array to be used.</param>
         /// <param name="learning"></param>
-        public override void BackPropagate(double[] outputErrorArray, int outputErrorSkip, double[] inputErrorArray, int inputErrorSkip, bool learning)
+        public override void BackPropagate(float[] outputErrorArray, int outputErrorSkip, float[] inputErrorArray, int inputErrorSkip, bool learning)
         {
             Backbone.BackpropagateBiasedConnectionMatrix(this.Input, this.InputSkip, this.InputSize, this.Output, this.OutputSkip, this.OutputSize, this.Weights, this.biases, outputErrorArray, outputErrorSkip, inputErrorArray, inputErrorSkip, this.Gradients, this.biasGradients, learning);
         }
@@ -86,21 +86,21 @@ namespace NeuralSharp
         /// <summary>Updates the weights of the layer.</summary>
         /// <param name="rate">The learning rate to be used.</param>
         /// <param name="momentum">The momentum to be used.</param>
-        public override void UpdateWeights(double rate, double momentum = 0)
+        public override void UpdateWeights(float rate, float momentum = 0)
         {
             Backbone.UpdateBiasedConnectionMatrix(Weights, Gradients, Momentum, biases, biasGradients, this.biasMomentum, InputSize, OutputSize, rate, momentum);
         }
 
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The created instance of the <code>BiasedConnectionMatrix</code> class.</returns>
-        public override ILayer<double[], double[]> CreateSiamese()
+        public override ILayer<float[], float[]> CreateSiamese()
         {
             return new BiasedConnectionMatrix(this, true);
         }
 
         /// <summary>Creates a clone of the layer.</summary>
         /// <returns>The created instance of the <code>BiasedConnectionMatrix</code> class.</returns>
-        public override ILayer<double[], double[]> Clone()
+        public override ILayer<float[], float[]> Clone()
         {
             return new BiasedConnectionMatrix(this, false);
         }

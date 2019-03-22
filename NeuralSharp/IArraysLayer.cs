@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents a layer whose input and output are arrays.</summary>
-    public interface IArraysLayer : ILayer<double[], double[]>
+    public interface IArraysLayer : ILayer<float[], float[]>
     {
         /// <summary>The length of the input of the layer.</summary>
         int InputSize { get; }
@@ -47,19 +47,19 @@ namespace NeuralSharp
         /// <param name="inputErrorArray">The array to be written the input error into.</param>
         /// <param name="inputErrorSkip">The index of the first entry of the input error array to be used.</param>
         /// <param name="learning">Whether the layer is being used in a training session.</param>
-        void BackPropagate(double[] outputErrorArray, int outputErrorSkip, double[] inputErrorArray, int inputErrorSkip, bool learning);
+        void BackPropagate(float[] outputErrorArray, int outputErrorSkip, float[] inputErrorArray, int inputErrorSkip, bool learning);
 
         /// <summary>Sets the input array and the output array of the layer.</summary>
         /// <param name="inputArray">The input array to be set.</param>
         /// <param name="inputSkip">The index of the first entry of the input array to be used.</param>
         /// <param name="outputArray">The output array to be set.</param>
         /// <param name="outputSkip">The index of the first entry of the output array to be used.</param>
-        void SetInputAndOutput(double[] inputArray, int inputSkip, double[] outputArray, int outputSkip);
+        void SetInputAndOutput(float[] inputArray, int inputSkip, float[] outputArray, int outputSkip);
 
         /// <summary>Sets the input array of the layer and creates and sets the output array.</summary>
         /// <param name="inputArray">The input array to be set.</param>
         /// <param name="inputSkip">The index of the first entry of the input array to be used.</param>
         /// <returns>The created output array.</returns>
-        double[] SetInputGetOutput(double[] inputArray, int inputSkip);
+        float[] SetInputGetOutput(float[] inputArray, int inputSkip);
     }
 }

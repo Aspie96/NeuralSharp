@@ -19,7 +19,7 @@ namespace NeuralSharp
             return new T[size];
         }
 
-        internal static void ApplyNeuronsString(double[] input, int inputSkip, double[] output, int outputSkip, int length, Func<double, double> function)
+        internal static void ApplyNeuronsString(float[] input, int inputSkip, float[] output, int outputSkip, int length, Func<float, float> function)
         {
             for (int i = 0; i < length; i++)
             {
@@ -27,7 +27,7 @@ namespace NeuralSharp
             }
         }
 
-        internal static void BackpropagateNeuronsString(double[] input, int inputSkip, double[] output, int outputSkip, int length, double[] outputError, int outputErrorSkip, double[] inputError, int inputErrorSkip, Func<double, double, double> functionDerivative, bool learning)
+        internal static void BackpropagateNeuronsString(float[] input, int inputSkip, float[] output, int outputSkip, int length, float[] outputError, int outputErrorSkip, float[] inputError, int inputErrorSkip, Func<float, float, float> functionDerivative, bool learning)
         {
             for (int i = 0; i < length; i++)
             {
@@ -35,35 +35,35 @@ namespace NeuralSharp
             }
         }
 
-        internal static void ApplySoftmax(double[] input, int inputSkip, double[] output, int outputSkip, int length)
+        internal static void ApplySoftmax(float[] input, int inputSkip, float[] output, int outputSkip, int length)
         {
-            double inputMax = double.NegativeInfinity;
+            float inputMax = float.NegativeInfinity;
             for (int i = 0; i < length; i++)
             {
                 inputMax = Math.Max(inputMax, input[i]);
             }
-            double expSum = 0.0;
+            float expSum = 0.0F;
             for (int i = 0; i < length; i++)
             {
-                expSum += Math.Exp(input[inputSkip + i] - inputMax);
+                expSum += (float)Math.Exp(input[inputSkip + i] - inputMax);
             }
             for (int i = 0; i < length; i++)
             {
-                output[outputSkip + i] = Math.Exp(input[inputSkip + i] - inputMax) / expSum;
+                output[outputSkip + i] = (float)Math.Exp(input[inputSkip + i] - inputMax) / expSum;
             }
         }
 
-        internal static void BackpropagateSoftmax(double[] input, int inputSkip, double[] output, int outputSkip, int length, double[] outputError, int outputErrorSkip, double[] inputError, int inputErrorSkip, bool learning)
+        internal static void BackpropagateSoftmax(float[] input, int inputSkip, float[] output, int outputSkip, int length, float[] outputError, int outputErrorSkip, float[] inputError, int inputErrorSkip, bool learning)
         {
             for (int i = 0; i < length; i++)
             {
-                double inputErrorValue = 0.0;
+                float inputErrorValue = 0.0F;
                 for (int j = 0; j < length; j++)
                 {
-                    double derivative;
+                    float derivative;
                     if (j == i)
                     {
-                        derivative = output[outputSkip + i] * (1.0 - output[outputSkip + j]);
+                        derivative = output[outputSkip + i] * (1.0F - output[outputSkip + j]);
                     }
                     else
                     {
@@ -75,11 +75,11 @@ namespace NeuralSharp
             }
         }
 
-        internal static void ApplyConnectionMatrix(double[] input, int inputSkip, int inputLength, double[] output, int outputSkip, int outputLength, double[,] weights)
+        internal static void ApplyConnectionMatrix(float[] input, int inputSkip, int inputLength, float[] output, int outputSkip, int outputLength, float[,] weights)
         {
             for (int i = 0; i < outputLength; i++)
             {
-                double outputValue = 0.0;
+                float outputValue = 0.0F;
                 for (int j = 0; j < inputLength; j++)
                 {
                     outputValue += input[inputSkip + j] * weights[j, i];
@@ -88,7 +88,7 @@ namespace NeuralSharp
             }
         }
 
-        internal static void UpdateConnectionMatrix(double[,] weights, double[,] gradients, double[,] oldUpdates, int inputLength, int outputLength, double rate, double momentum)
+        internal static void UpdateConnectionMatrix(float[,] weights, float[,] gradients, float[,] oldUpdates, int inputLength, int outputLength, float rate, float momentum)
         {
             for (int i = 0; i < inputLength; i++)
             {
@@ -96,18 +96,18 @@ namespace NeuralSharp
                 {
                     oldUpdates[i, j] = gradients[i, j] * rate + oldUpdates[i, j] * momentum;
                     weights[i, j] += oldUpdates[i, j];
-                    gradients[i, j] = 0.0;
+                    gradients[i, j] = 0.0F;
                 }
             }
         }
 
-        internal static void BackpropagateConnectionMatrix(double[] input, int inputSkip, int inputLength, double[] output, int outputSkip, int outputLength, double[,] weights, double[] outputError, int outputErrorSkip, double[] inputError, int inputErrorSkip, double[,] gradients, bool learning)
+        internal static void BackpropagateConnectionMatrix(float[] input, int inputSkip, int inputLength, float[] output, int outputSkip, int outputLength, float[,] weights, float[] outputError, int outputErrorSkip, float[] inputError, int inputErrorSkip, float[,] gradients, bool learning)
         {
             if (learning)
             {
                 for (int i = 0; i < inputLength; i++)
                 {
-                    double inputErrorValue = 0.0;
+                    float inputErrorValue = 0.0F;
                     for (int j = 0; j < outputLength; j++)
                     {
                         inputErrorValue += outputError[outputErrorSkip + j] * weights[i, j];
@@ -120,7 +120,7 @@ namespace NeuralSharp
             {
                 for (int i = 0; i < inputLength; i++)
                 {
-                    double inputErrorValue = 0.0;
+                    float inputErrorValue = 0.0F;
                     for (int j = 0; j < outputLength; j++)
                     {
                         inputErrorValue += outputError[outputErrorSkip + j] * weights[i, j];
@@ -130,11 +130,11 @@ namespace NeuralSharp
             }
         }
 
-        internal static void ApplyBiasedConnectionMatrix(double[] input, int inputSkip, int inputLength, double[] output, int outputSkip, int outputLength, double[,] weights, double[] biases)
+        internal static void ApplyBiasedConnectionMatrix(float[] input, int inputSkip, int inputLength, float[] output, int outputSkip, int outputLength, float[,] weights, float[] biases)
         {
             for (int i = 0; i < outputLength; i++)
             {
-                double outputVal = 0.0;
+                float outputVal = 0.0F;
                 for (int j = 0; j < inputLength; j++)
                 {
                     outputVal += input[inputSkip + j] * weights[j, i];
@@ -143,7 +143,7 @@ namespace NeuralSharp
             }
         }
 
-        internal static void ImageToArray(float[] image, int imageDepth, int imageWidth, int imageHeight, int depth, int width, int height, double[] array, int skip)
+        internal static void ImageToArray(float[] image, int imageDepth, int imageWidth, int imageHeight, int depth, int width, int height, float[] array, int skip)
         {
             for (int i = 0; i < depth; i++)
             {
@@ -157,25 +157,25 @@ namespace NeuralSharp
             }
         }
 
-        internal static void UpdateBiasedConnectionMatrix(double[,] weights, double[,] gradients, double[,] oldUpdates, double[] biases, double[] biasGradients, double[] oldBiasUpdates, int inputLength, int outputLength, double rate, double momentum)
+        internal static void UpdateBiasedConnectionMatrix(float[,] weights, float[,] gradients, float[,] oldUpdates, float[] biases, float[] biasGradients, float[] oldBiasUpdates, int inputLength, int outputLength, float rate, float momentum)
         {
             for (int i = 0; i < outputLength; i++)
             {
                 for (int j = 0; j < inputLength; j++)
                 {
                     weights[j, i] += (oldUpdates[j, i] = gradients[j, i] * rate + momentum * oldUpdates[j, i]);
-                    gradients[j, i] = 0.0;
+                    gradients[j, i] = 0.0F;
                 }
                 biases[i] += (oldBiasUpdates[i] = biasGradients[i] * rate + momentum * oldBiasUpdates[i]);
-                biasGradients[i] = 0.0;
+                biasGradients[i] = 0.0F;
             }
         }
 
-        internal static void BackpropagateBiasedConnectionMatrix(double[] input, int inputSkip, int inputLength, double[] output, int outputSkip, int outputLength, double[,] weights, double[] biases, double[] outputError, int outputErrorSkip, double[] inputError, int inputErrorSkip, double[,] weightsGradients, double[] biasGradients, bool learning)
+        internal static void BackpropagateBiasedConnectionMatrix(float[] input, int inputSkip, int inputLength, float[] output, int outputSkip, int outputLength, float[,] weights, float[] biases, float[] outputError, int outputErrorSkip, float[] inputError, int inputErrorSkip, float[,] weightsGradients, float[] biasGradients, bool learning)
         {
             for (int i = 0; i < inputLength; i++)
             {
-                double inputErrorVal = 0.0;
+                float inputErrorVal = 0.0F;
                 for (int j = 0; j < outputLength; j++)
                 {
                     inputErrorVal += outputError[outputErrorSkip + j] * weights[i, j];
@@ -195,7 +195,7 @@ namespace NeuralSharp
             }
         }
 
-        internal static void ApplyDropout(double[] input, int inputSkip, double[] output, int outputSkip, int length, bool[] dropped, double dropChance, bool learning)
+        internal static void ApplyDropout(float[] input, int inputSkip, float[] output, int outputSkip, int length, bool[] dropped, float dropChance, bool learning)
         {
             if (learning)
             {
@@ -204,7 +204,7 @@ namespace NeuralSharp
                     dropped[i] = RandomGenerator.GetDouble() < dropChance;
                     if (dropped[i])
                     {
-                        output[outputSkip + i] = 0.0;
+                        output[outputSkip + i] = 0.0F;
                     }
                     else
                     {
@@ -216,12 +216,12 @@ namespace NeuralSharp
             {
                 for (int i = 0; i < length; i++)
                 {
-                    output[outputSkip + i] = input[inputSkip + i] * (1.0 - dropChance);
+                    output[outputSkip + i] = input[inputSkip + i] * (1.0F - dropChance);
                 }
             }
         }
 
-        internal static void BackpropagateDropout(double[] input, int inputSkip, double[] output, int outputSkip, int length, bool[] dropped, double dropChance, bool learning, double[] outputError, int outputErrorSkip, double[] inputError, int inputErrorSkip)
+        internal static void BackpropagateDropout(float[] input, int inputSkip, float[] output, int outputSkip, int length, bool[] dropped, float dropChance, bool learning, float[] outputError, int outputErrorSkip, float[] inputError, int inputErrorSkip)
         {
             if (learning)
             {
@@ -229,7 +229,7 @@ namespace NeuralSharp
                 {
                     if (dropped[i])
                     {
-                        inputError[inputErrorSkip + i] = 0.0;
+                        inputError[inputErrorSkip + i] = 0.0F;
                     }
                     else
                     {
@@ -241,12 +241,12 @@ namespace NeuralSharp
             {
                 for (int i = 0; i < length; i++)
                 {
-                    inputError[inputErrorSkip + i] = outputError[outputErrorSkip + i] * (1.0 - dropChance);
+                    inputError[inputErrorSkip + i] = outputError[outputErrorSkip + i] * (1.0F - dropChance);
                 }
             }
         }
 
-        internal static void RandomizeArray(double[] array, int skip, int length, double variance)
+        internal static void RandomizeArray(float[] array, int skip, int length, float variance)
         {
             for (int i = 0; i < length; i++)
             {
@@ -281,15 +281,15 @@ namespace NeuralSharp
             }
         }
 
-        internal static double GetError(double[] output, int outputSkip, double[] expected, int expectedSkip, double[] error, int errorSkip, int length)
+        internal static float GetError(float[] output, int outputSkip, float[] expected, int expectedSkip, float[] error, int errorSkip, int length)
         {
-            double retVal = 0.0;
+            float retVal = 0.0F;
             for (int i = 0; i < length; i++)
             {
                 error[errorSkip + i] = expected[expectedSkip + i] - output[i];
                 retVal += error[errorSkip + i] * error[errorSkip + i];
             }
-            return Math.Sqrt(retVal);
+            return (float)Math.Sqrt(retVal);
         }
 
         internal static void ImageToImage(float[] thisImage, int thisDepth, int thisWidth, int thisHeight, float[] source, int sourceDepth, int sourceWidth, int sourceHeight, int sourceW, int sourceX, int sourceY, int thisW, int thisX, int thisY, int depth, int width, int height)
@@ -306,7 +306,7 @@ namespace NeuralSharp
             }
         }
         
-        internal static void ArrayToImage(float[] thisImage, int thisDepth, int thisWidth, int thisHeight, double[] array, int skip, int thisW, int thisX, int thisY, int depth, int width, int height)
+        internal static void ArrayToImage(float[] thisImage, int thisDepth, int thisWidth, int thisHeight, float[] array, int skip, int thisW, int thisX, int thisY, int depth, int width, int height)
         {
             for (int i = 0; i < depth; i++)
             {
@@ -354,7 +354,7 @@ namespace NeuralSharp
                 {
                     for (int k = 0; k < outputHeight; k++)
                     {
-                        double outputValue = output[i * outputWidth * outputHeight + j * outputHeight + k];
+                        float outputValue = output[i * outputWidth * outputHeight + j * outputHeight + k];
                         for (int l = 0; l < xScale; l++)
                         {
                             for (int m = 0; m < yScale; m++)
@@ -534,24 +534,13 @@ namespace NeuralSharp
             }
         }*/
 
-        internal static void RandomizeMatrix(float[,] matrix, int width, int height, double variance)
+        internal static void RandomizeMatrix(float[,] matrix, int width, int height, float variance)
         {
             for (int i = 0; i < width; i++)
             {
                 for (int j = 0; j < height; j++)
                 {
                     matrix[i, j] = (float)RandomGenerator.GetNormalNumber(variance);
-                }
-            }
-        }
-
-        internal static void RandomizeMatrix(double[,] matrix, int width, int height, double variance)
-        {
-            for (int i = 0; i < width; i++)
-            {
-                for (int j = 0; j < height; j++)
-                {
-                    matrix[i, j] = RandomGenerator.GetNormalNumber(variance);
                 }
             }
         }
@@ -588,7 +577,7 @@ namespace NeuralSharp
             }
         }*/
 
-        internal static void ApplyImageDropout(float[] input, float[] output, int depth, int width, int height, bool[] dropped, double dropChance, bool learning)
+        internal static void ApplyImageDropout(float[] input, float[] output, int depth, int width, int height, bool[] dropped, float dropChance, bool learning)
         {
             if (learning)
             {
@@ -609,12 +598,12 @@ namespace NeuralSharp
             {
                 for (int i = 0; i < depth * width * height; i++)
                 {
-                    output[i] = input[i] * (float)(1.0 - dropChance);
+                    output[i] = input[i] * (float)(1.0F - dropChance);
                 }
             }
         }
 
-        internal static void BackpropagateImageDropout(float[] input, float[] output, int depth, int width, int height, bool[] dropped, double dropChance, bool learning, float[] outputError, int outputErrorDepth, int outputErrorWidth, int outputErrorHeight, float[] inputError, int inputErrorDepth, int inputErrorWidth, int inputErrorHeight)
+        internal static void BackpropagateImageDropout(float[] input, float[] output, int depth, int width, int height, bool[] dropped, float dropChance, bool learning, float[] outputError, int outputErrorDepth, int outputErrorWidth, int outputErrorHeight, float[] inputError, int inputErrorDepth, int inputErrorWidth, int inputErrorHeight)
         {
             if (learning)
             {
@@ -644,7 +633,7 @@ namespace NeuralSharp
                     {
                         for (int k = 0; k < height; k++)
                         {
-                            inputError[i * inputErrorWidth * inputErrorHeight + j * inputErrorHeight + k] = outputError[i * outputErrorWidth * outputErrorHeight + j * outputErrorHeight + k] * (float)(1.0 - dropChance);
+                            inputError[i * inputErrorWidth * inputErrorHeight + j * inputErrorHeight + k] = outputError[i * outputErrorWidth * outputErrorHeight + j * outputErrorHeight + k] * (float)(1.0F - dropChance);
                         }
                     }
                 }

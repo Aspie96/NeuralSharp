@@ -183,7 +183,7 @@ namespace NeuralSharp
         /// <summary>Updates the weights of the layer.</summary>
         /// <param name="rate">The learning rate to be used.</param>
         /// <param name="momentum">The momentum to be used.</param>
-        public void UpdateWeights(double rate, double momentum = 0.0) { }
+        public void UpdateWeights(float rate, float momentum = 0.0F) { }
         
         /// <summary>Sets the input image and the output image of the layer.</summary>
         /// <param name="input">The input image to be set.</param>

@@ -36,7 +36,7 @@ namespace NeuralSharp
         private int width;
         private int height;
         private bool[] dropped;
-        private double dropChance;
+        private float dropChance;
         private object siameseID;
 
         /// <summary>Either creates a siamese of the given <code>ImageDropoutLayer</code> instance or clones it.</summary>
@@ -65,7 +65,7 @@ namespace NeuralSharp
         /// <param name="height">The height of the layer.</param>
         /// <param name="dropChance">The dropout chance of the layer.</param>
         /// <param name="createIO">Whether the input image and the output image of the layer are to be created.</param>
-        public ImageDropoutLayer(int depth, int width, int height, double dropChance, bool createIO = false)
+        public ImageDropoutLayer(int depth, int width, int height, float dropChance, bool createIO = false)
         {
             this.depth = depth;
             this.width = width;
@@ -147,7 +147,7 @@ namespace NeuralSharp
         }
 
         /// <summary>The dropout chance of the layer.</summary>
-        public double DropChance
+        public float DropChance
         {
             get { return this.dropChance; }
         }
@@ -183,7 +183,7 @@ namespace NeuralSharp
         /// <summary>Updates the weights of the layer. Does nothing.</summary>
         /// <param name="rate">The lerning reate to be used.</param>
         /// <param name="momentum">The momentum to be used.</param>
-        public void UpdateWeights(double rate, double momentum = 0.0) { }
+        public void UpdateWeights(float rate, float momentum = 0.0F) { }
         
         /// <summary>Sets the input image and the output image of the layer.</summary>
         /// <param name="input">The input image to be set.</param>

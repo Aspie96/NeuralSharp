@@ -29,13 +29,13 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents a deconvolutional neural network.</summary>
-    public class DeConvolutionalNN : ForwardLearner<double[], Image, IError<Image>>, IArrayImageLayer
+    public class DeConvolutionalNN : ForwardLearner<float[], Image, IError<Image>>, IArrayImageLayer
     {
         private FeedForwardNN firstPart;
         private ArrayToImage a2i;
         private PurelyConvolutionalNN cnn;
         private bool layersConnected;
-        private double[] errorArray;
+        private float[] errorArray;
         private Image errorImage;
         private object siameseID;
 
@@ -44,7 +44,7 @@ namespace NeuralSharp
         /// <param name="siamese"><code>true</code> if a siamese is to be created, <code>false</code> if a clone is.</param>
         protected DeConvolutionalNN(DeConvolutionalNN original, bool siamese)
         {
-            this.errorArray = Backbone.CreateArray<double>(original.cnn.InputDepth * original.cnn.InputWidth * original.cnn.InputHeight);
+            this.errorArray = Backbone.CreateArray<float>(original.cnn.InputDepth * original.cnn.InputWidth * original.cnn.InputHeight);
             this.errorImage = new Image(original.cnn.InputDepth, original.cnn.InputWidth, original.cnn.InputHeight);
             this.layersConnected = false;
             if (siamese)
@@ -72,18 +72,18 @@ namespace NeuralSharp
             this.firstPart = firstPart;
             this.a2i = new ArrayToImage(cnn.InputDepth, cnn.InputWidth, cnn.InputHeight, false);
             this.cnn = cnn;
-            this.errorArray = Backbone.CreateArray<double>(cnn.InputDepth * cnn.InputWidth * cnn.InputHeight);
+            this.errorArray = Backbone.CreateArray<float>(cnn.InputDepth * cnn.InputWidth * cnn.InputHeight);
             this.errorImage = new Image(cnn.InputDepth, cnn.InputWidth, cnn.InputHeight);
             this.layersConnected = false;
             if (createIO)
             {
-                this.SetInputGetOutput(Backbone.CreateArray<double>(firstPart.InputSize));
+                this.SetInputGetOutput(Backbone.CreateArray<float>(firstPart.InputSize));
             }
             this.siameseID = new object();
         }
         
         /// <summary>The input array of the network.</summary>
-        public double[] Input
+        public float[] Input
         {
             get { return this.firstPart.Input; }
         }
@@ -158,7 +158,7 @@ namespace NeuralSharp
         /// <param name="inputErrorArray">The array to be written the input error into.</param>
         /// <param name="inputErrorSkip">The index of the first used entry of the input error array.</param>
         /// <param name="learning">Whether the network is being used in a training session.</param>
-        public void BackPropagate(Image outputError, double[] inputErrorArray, int inputErrorSkip, bool learning)
+        public void BackPropagate(Image outputError, float[] inputErrorArray, int inputErrorSkip, bool learning)
         {
             this.cnn.BackPropagate(outputError, this.errorImage, learning);
             this.a2i.BackPropagate(this.errorImage, this.errorArray, learning);
@@ -169,7 +169,7 @@ namespace NeuralSharp
         /// <param name="outputError">The output error to be backpropagated.</param>
         /// <param name="inputError">The array to be written the input error into.</param>
         /// <param name="learning">Whether the network is being used in a training session.</param>
-        public override void BackPropagate(Image outputError, double[] inputError, bool learning)
+        public override void BackPropagate(Image outputError, float[] inputError, bool learning)
         {
             this.BackPropagate(outputError, inputError, 0, learning);
         }
@@ -188,7 +188,7 @@ namespace NeuralSharp
         /// <param name="inputSkip">The index of the first entry of the given input array to be used.</param>
         /// <param name="output">The image to be copied the output into.</param>
         /// <param name="learning">Whether the network is being used in a training session.</param>
-        public void Feed(double[] inputArray, int inputSkip, Image output, bool learning = false)
+        public void Feed(float[] inputArray, int inputSkip, Image output, bool learning = false)
         {
             Backbone.CopyArray(inputArray, inputSkip, this.Input, this.InputSkip, this.InputSize);
             this.Feed(learning);
@@ -199,7 +199,7 @@ namespace NeuralSharp
         /// <param name="input">The array to be copied the input from.</param>
         /// <param name="output">The image to be copied the output into.</param>
         /// <param name="learning">Whether the network is being used in a training session.</param>
-        public override void Feed(double[] input, Image output, bool learning = false)
+        public override void Feed(float[] input, Image output, bool learning = false)
         {
             this.Feed(input, 0, output, learning);
         }
@@ -208,7 +208,7 @@ namespace NeuralSharp
         /// <param name="inputArray">The input array to be set.</param>
         /// <param name="inputSkip">The index of the first entry of the input array to be used.</param>
         /// <param name="output">The output image to be set.</param>
-        public void SetInputAndOutput(double[] inputArray, int inputSkip, Image output)
+        public void SetInputAndOutput(float[] inputArray, int inputSkip, Image output)
         {
             if (this.layersConnected)
             {
@@ -217,7 +217,7 @@ namespace NeuralSharp
             }
             else
             {
-                double[] array = this.firstPart.SetInputGetOutput(inputArray, inputSkip);
+                float[] array = this.firstPart.SetInputGetOutput(inputArray, inputSkip);
                 Image image = this.a2i.SetInputGetOutput(array);
                 this.cnn.SetInputAndOutput(image, output);
                 this.layersConnected = true;
@@ -227,7 +227,7 @@ namespace NeuralSharp
         /// <summary>Sets the input array and the output image of the network, connecting its inner layers.</summary>
         /// <param name="input">The input array to be set.</param>
         /// <param name="output">The output image to be set.</param>
-        public void SetInputAndOutput(double[] input, Image output)
+        public void SetInputAndOutput(float[] input, Image output)
         {
             this.SetInputAndOutput(input, 0, output);
         }
@@ -235,7 +235,7 @@ namespace NeuralSharp
         /// <summary>Sets the input array of the network and creates and sets the output image.</summary>
         /// <param name="input">The input array to be set.</param>
         /// <returns>The created output image.</returns>
-        public Image SetInputGetOutput(double[] input)
+        public Image SetInputGetOutput(float[] input)
         {
             Image retVal = new Image(this.OutputDepth, this.OutputWidth, this.OutputHeight);
             this.SetInputAndOutput(input, retVal);
@@ -245,7 +245,7 @@ namespace NeuralSharp
         /// <summary>Updates the weights of the network.</summary>
         /// <param name="rate">The learning rate to be used.</param>
         /// <param name="momentum">The momentum to be used.</param>
-        public override void UpdateWeights(double rate, double momentum = 0.0)
+        public override void UpdateWeights(float rate, float momentum = 0.0F)
         {
             this.firstPart.UpdateWeights(rate, momentum);
             this.cnn.UpdateWeights(rate, momentum);
@@ -257,7 +257,7 @@ namespace NeuralSharp
         /// <param name="error">Image to be written the output error into.</param>
         /// <param name="errorFunction">The error function to be used.</param>
         /// <returns>The output error of the network.</returns>
-        public override double GetError(Image output, Image expectedOuptut, Image error, IError<Image> errorFunction)
+        public override float GetError(Image output, Image expectedOuptut, Image error, IError<Image> errorFunction)
         {
             return errorFunction.GetError(output, expectedOuptut, error);
         }
@@ -270,7 +270,7 @@ namespace NeuralSharp
         /// <param name="errorFunction">The error function to be used.</param>
         /// <param name="learning">Whether the network is being used in a training session.</param>
         /// <returns>The output error of the network.</returns>
-        public double FeedAndGetError(double[] inputArray, int inputSkip, Image expectedOutput, Image error, IError<Image> errorFunction, bool learning)
+        public float FeedAndGetError(float[] inputArray, int inputSkip, Image expectedOutput, Image error, IError<Image> errorFunction, bool learning)
         {
             Backbone.CopyArray(inputArray, inputSkip, this.Input, this.InputSkip, this.InputSize);
             this.Feed(learning);
@@ -284,21 +284,21 @@ namespace NeuralSharp
         /// <param name="errorFunction">The error function to be used.</param>
         /// <param name="learning">Whether the network is being used in a training session.</param>
         /// <returns>The output array of the network.</returns>
-        public override double FeedAndGetError(double[] input, Image expectedOutput, Image error, IError<Image> errorFunction, bool learning)
+        public override float FeedAndGetError(float[] input, Image expectedOutput, Image error, IError<Image> errorFunction, bool learning)
         {
             return this.FeedAndGetError(input, 0, expectedOutput, error, errorFunction, learning);
         }
 
         /// <summary>Creates a siamese of the network.</summary>
         /// <returns>The created instance of the <code>DeConvolutionalNN</code> class.</returns>
-        public virtual ILayer<double[], Image> CreateSiamese()
+        public virtual ILayer<float[], Image> CreateSiamese()
         {
             return new DeConvolutionalNN(this, true);
         }
 
         /// <summary>Creates a clone of the network.</summary>
         /// <returns>The created instance of the <code>DeConvolutionalNN</code> class.</returns>
-        public virtual ILayer<double[], Image> Clone()
+        public virtual ILayer<float[], Image> Clone()
         {
             return new DeConvolutionalNN(this, false);
         }

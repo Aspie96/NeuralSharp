@@ -31,8 +31,8 @@ namespace NeuralSharp
     /// <summary>Represents a string of neurons.</summary>
     public class NeuronsString : IArraysLayer
     {
-        private double[] input;
-        private double[] output;
+        private float[] input;
+        private float[] output;
         private int inputSkip;
         private int outputSkip;
         private int length;
@@ -61,8 +61,8 @@ namespace NeuralSharp
         {
             if (createIO)
             {
-                this.input = Backbone.CreateArray<double>(length);
-                this.output = Backbone.CreateArray<double>(length);
+                this.input = Backbone.CreateArray<float>(length);
+                this.output = Backbone.CreateArray<float>(length);
                 this.inputSkip = 0;
                 this.outputSkip = 0;
             }
@@ -71,13 +71,13 @@ namespace NeuralSharp
         }
         
         /// <summary>The input array.</summary>
-        public double[] Input
+        public float[] Input
         {
             get { return this.input; }
         }
 
         /// <summary>The output array.</summary>
-        public double[] Output
+        public float[] Output
         {
             get { return this.output; }
         }
@@ -127,18 +127,18 @@ namespace NeuralSharp
         /// <summary>The activation function of the layer.</summary>
         /// <param name="input">The input.</param>
         /// <returns>The output.</returns>
-        protected virtual double Activation(double input)
+        protected virtual float Activation(float input)
         {
-            return 1.0 / (1.0 + Math.Exp(-input));
+            return 1.0F / (1.0F +(float)Math.Exp(-input));
         }
 
         /// <summary>The derivative of the activation function of the layer.</summary>
         /// <param name="input">The input of the layer.</param>
         /// <param name="output">The output.</param>
         /// <returns>The derivative.</returns>
-        protected virtual double ActivationDerivative(double input, double output)
+        protected virtual float ActivationDerivative(float input, float output)
         {
-            return output * (1.0 - output);
+            return output * (1.0F - output);
         }
 
         /// <summary>Feeds the layer forward.</summary>
@@ -154,7 +154,7 @@ namespace NeuralSharp
         /// <param name="inputErrorArray">The array to be written the input error into.</param>
         /// <param name="inputErrorSkip">The index of the first entry of the input layer to be used.</param>
         /// <param name="learning">Whether the layer is being used in a learning session.</param>
-        public virtual void BackPropagate(double[] outputErrorArray, int outputErrorSkip, double[] inputErrorArray, int inputErrorSkip, bool learning)
+        public virtual void BackPropagate(float[] outputErrorArray, int outputErrorSkip, float[] inputErrorArray, int inputErrorSkip, bool learning)
         {
             Backbone.BackpropagateNeuronsString(this.input, this.inputSkip, this.output, this.outputSkip, this.length, outputErrorArray, outputErrorSkip, inputErrorArray, inputErrorSkip, this.ActivationDerivative, learning);
         }
@@ -163,7 +163,7 @@ namespace NeuralSharp
         /// <param name="outputError">The error to be backpropagated.</param>
         /// <param name="inputError">The array to be written the input error into.</param>
         /// <param name="learning">Whether the layer is being used in a learning session.</param>
-        public void BackPropagate(double[] outputError, double[] inputError, bool learning)
+        public void BackPropagate(float[] outputError, float[] inputError, bool learning)
         {
             this.BackPropagate(outputError, 0, inputError, 0, learning);
         }
@@ -173,7 +173,7 @@ namespace NeuralSharp
         /// <param name="inputSkip">The index of the first entry of the input array to be used.</param>
         /// <param name="outputArray">The output array to be set.</param>
         /// <param name="outputSkip">The index of the first entry of the output array to be used.</param>
-        public void SetInputAndOutput(double[] inputArray, int inputSkip, double[] outputArray, int outputSkip)
+        public void SetInputAndOutput(float[] inputArray, int inputSkip, float[] outputArray, int outputSkip)
         {
             this.input = inputArray;
             this.inputSkip = inputSkip;
@@ -184,7 +184,7 @@ namespace NeuralSharp
         /// <summary>Sets the input array and the output array of the layer.</summary>
         /// <param name="input">The input array to be used.</param>
         /// <param name="output">The output array to be used.</param>
-        public void SetInputAndOutput(double[] input, double[] output)
+        public void SetInputAndOutput(float[] input, float[] output)
         {
             this.SetInputAndOutput(input, 0, output, 0);
         }
@@ -193,18 +193,18 @@ namespace NeuralSharp
         /// <param name="inputArray">The input array to be set.</param>
         /// <param name="inputSkip">The index of the first entry of the input array to be used.</param>
         /// <returns>The created output array.</returns>
-        public double[] SetInputGetOutput(double[] inputArray, int inputSkip)
+        public float[] SetInputGetOutput(float[] inputArray, int inputSkip)
         {
             this.input = inputArray;
             this.inputSkip = inputSkip;
             this.outputSkip = 0;
-            return this.output = Backbone.CreateArray<double>(this.Length);
+            return this.output = Backbone.CreateArray<float>(this.Length);
         }
 
         /// <summary>Sets the input array and creates and sets the output array.</summary>
         /// <param name="input">The input array to be set.</param>
         /// <returns>The created output array.</returns>
-        public double[] SetInputGetOutput(double[] input)
+        public float[] SetInputGetOutput(float[] input)
         {
             return this.SetInputGetOutput(input, 0);
         }
@@ -212,18 +212,18 @@ namespace NeuralSharp
         /// <summary>Updates the weights of the layer.</summary>
         /// <param name="rate">The learning rate to be used.</param>
         /// <param name="momentum">The momentum to be used.</param>
-        public void UpdateWeights(double rate, double momentum = 0.0) { }
+        public void UpdateWeights(float rate, float momentum = 0.0F) { }
 
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The siamese.</returns>
-        public virtual ILayer<double[], double[]> CreateSiamese()
+        public virtual ILayer<float[], float[]> CreateSiamese()
         {
             return new NeuronsString(this, true);
         }
 
         /// <summary>Creates a clone of the layer.</summary>
         /// <returns>The clone.</returns>
-        public virtual ILayer<double[], double[]> Clone()
+        public virtual ILayer<float[], float[]> Clone()
         {
             return new NeuronsString(this, false);
         }

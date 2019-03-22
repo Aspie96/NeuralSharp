@@ -31,7 +31,7 @@ namespace NeuralSharp
     /// <summary>Represents a neurons string whose activation function is LeakyRelu.</summary>
     public class LeakyReluNeuronsString : NeuronsString
     {
-        private double alpha;
+        private float alpha;
 
         /// <summary>Either creates a siamese of the given <code>LeakyReluNeuronsString</code> class or clones it.</summary>
         /// <param name="original">The original instance to be created a siamese of or cloned.</param>
@@ -45,13 +45,13 @@ namespace NeuralSharp
         /// <param name="length">The lenght of the layer.</param>
         /// <param name="alpha">The alpha coefficient of the layer.</param>
         /// <param name="createIO">Whether the input array and the output array are to be created.</param>
-        public LeakyReluNeuronsString(int length, double alpha, bool createIO = false) : base(length, createIO)
+        public LeakyReluNeuronsString(int length, float alpha, bool createIO = false) : base(length, createIO)
         {
             this.alpha = alpha;
         }
         
         /// <summary>The slope of the layer.</summary>
-        public double Alpha
+        public float Alpha
         {
             get { return this.alpha; }
         }
@@ -59,30 +59,30 @@ namespace NeuralSharp
         /// <summary>The leaky relu function.</summary>
         /// <param name="input">The input of the function.</param>
         /// <returns>The output of the function.</returns>
-        protected override double Activation(double input)
+        protected override float Activation(float input)
         {
-            return (input < 0.0 ? input * this.Alpha : input);
+            return (input < 0.0F ? input * this.Alpha : input);
         }
 
         /// <summary>The derivative of the leaky relu function.</summary>
         /// <param name="input">The input of the function.</param>
         /// <param name="output">The output of the function.</param>
         /// <returns>The derivative of the function.</returns>
-        protected override double ActivationDerivative(double input, double output)
+        protected override float ActivationDerivative(float input, float output)
         {
-            return (output > 0.0 ? 1.0 : this.Alpha);
+            return (output > 0.0F ? 1.0F : this.Alpha);
         }
 
         /// <summary>Cretes a siamese of the layer.</summary>
         /// <returns>The created instance of the <code>LeakyReluNeuronsString</code> class.</returns>
-        public override ILayer<double[], double[]> CreateSiamese()
+        public override ILayer<float[], float[]> CreateSiamese()
         {
             return new LeakyReluNeuronsString(this, true);
         }
 
         /// <summary>Creates a clone of the layer.</summary>
         /// <returns>The created instance of the <code>LeakyReluNeuronsString</code> class.</returns>
-        public override ILayer<double[], double[]> Clone()
+        public override ILayer<float[], float[]> Clone()
         {
             return new LeakyReluNeuronsString(this, false);
         }

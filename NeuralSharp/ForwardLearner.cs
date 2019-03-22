@@ -42,7 +42,7 @@ namespace NeuralSharp
         /// <param name="epoch">The epoch.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="momentum">The momentum to be used.</param>
-        public delegate void LearningParametersFunction(int batchSize, int batchIndex, int batchesCount, int epoch, out double learningRate, out double momentum);
+        public delegate void LearningParametersFunction(int batchSize, int batchIndex, int batchesCount, int epoch, out float learningRate, out float momentum);
         
         /// <summary>Creates an object which can be used as output error.</summary>
         /// <returns>The created object.</returns>
@@ -68,7 +68,7 @@ namespace NeuralSharp
         /// <summary>Updates the weights of the learner.</summary>
         /// <param name="rate">The learning rate to be used.</param>
         /// <param name="momentum">The momentum to be used.</param>
-        public abstract void UpdateWeights(double rate, double momentum = 0.0);
+        public abstract void UpdateWeights(float rate, float momentum = 0.0F);
 
         /// <summary>Gets the error of the learner, given its actual output and expected output.</summary>
         /// <param name="output">The actual output of the learner.</param>
@@ -76,7 +76,7 @@ namespace NeuralSharp
         /// <param name="error">The object to be written the output error into.</param>
         /// <param name="errorFunction">The error function to be used.</param>
         /// <returns>The output error of the learner.</returns>
-        public abstract double GetError(TOut output, TOut expectedOutput, TOut error, TErrFunc errorFunction);
+        public abstract float GetError(TOut output, TOut expectedOutput, TOut error, TErrFunc errorFunction);
 
         /// <summary>Feeds the learner forward and gets its error, given the expected output.</summary>
         /// <param name="input">The object to be read the input from.</param>
@@ -85,7 +85,7 @@ namespace NeuralSharp
         /// <param name="errorFunction">The error function to be used.</param>
         /// <param name="learning">Whether the learner is being used in a training session.</param>
         /// <returns>The error of the learner.</returns>
-        public abstract double FeedAndGetError(TIn input, TOut expectedOutput, TOut error, TErrFunc errorFunction, bool learning);
+        public abstract float FeedAndGetError(TIn input, TOut expectedOutput, TOut error, TErrFunc errorFunction, bool learning);
 
         /// <summary>Gets the best parameters during training.</summary>
         /// <param name="batchSize">The batch size.</param>
@@ -94,11 +94,11 @@ namespace NeuralSharp
         /// <param name="epoch">The epoch index.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="momentum">The momentum.</param>
-        protected virtual void DefaultLearningParameters(int batchSize, int batchIndex, int batchesCount, int epoch, out double learningRate, out double momentum)
+        protected virtual void DefaultLearningParameters(int batchSize, int batchIndex, int batchesCount, int epoch, out float learningRate, out float momentum)
         {
             //learningRate = 0.5 / (1 + batchSize * (batchesCount * epoch + batchIndex + 1) * 0.00006);
-            learningRate = 0.0001;// * Math.Exp(-0.000005 * batchSize * (batchesCount * epoch + batchIndex + 1));
-            momentum = 0.0;
+            learningRate = 0.0001F;// *(float)Math.Exp(-0.000005 * batchSize * (batchesCount * epoch + batchIndex + 1));
+            momentum = 0.0F;
         }
 
         /// <summary>Learns using the given input and output pairs.</summary>
@@ -110,7 +110,7 @@ namespace NeuralSharp
         /// <param name="errorFunction">The error function to be used.</param>
         /// <param name="learningParametersFunction">A function getting the learning parameters at each step.</param>
         /// <returns>Whether the maximum accepted error has been reached.</returns>
-        public virtual double Learn(IEnumerable<TIn> inputs, IEnumerable<TOut> outputs, double maxError, int maxSteps, int batchSize, TErrFunc errorFunction, LearningParametersFunction learningParametersFunction = null)
+        public virtual float Learn(IEnumerable<TIn> inputs, IEnumerable<TOut> outputs, float maxError, int maxSteps, int batchSize, TErrFunc errorFunction, LearningParametersFunction learningParametersFunction = null)
         {
             int entries = (Math.Min(inputs.Count(), outputs.Count()) / batchSize) * batchSize;
             int[] indices = new int[entries];
@@ -120,7 +120,7 @@ namespace NeuralSharp
             }
             //RandomGenerator.ShuffleArray(indices);
             TOut error = this.NewError();
-            double errorValue;
+            float errorValue;
             int epoch = 0;
             do
             {
@@ -133,7 +133,7 @@ namespace NeuralSharp
                         this.BackPropagate(error, true);
 
                     }
-                    (learningParametersFunction ?? this.DefaultLearningParameters)(batchSize, i / batchSize, entries / batchSize, epoch, out double learningRate, out double momentum);
+                    (learningParametersFunction ?? this.DefaultLearningParameters)(batchSize, i / batchSize, entries / batchSize, epoch, out float learningRate, out float momentum);
                     this.UpdateWeights(learningRate * batchSize, momentum);
                 }
                 errorValue /= entries;

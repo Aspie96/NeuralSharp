@@ -35,6 +35,6 @@ namespace NeuralSharp
         /// <param name="expectedOutput">The expected output.</param>
         /// <param name="error">The object to be written the error into.</param>
         /// <returns>The error.</returns>
-        double GetError(T output, T expectedOutput, T error);
+        float GetError(T output, T expectedOutput, T error);
     }
 }

@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents a layer whose input is an array and whose output is an image.</summary>
-    public interface IArrayImageLayer : ILayer<double[], Image>
+    public interface IArrayImageLayer : ILayer<float[], Image>
     {
         /// <summary>The length of the input of the layer.</summary>
         int InputSize { get; }

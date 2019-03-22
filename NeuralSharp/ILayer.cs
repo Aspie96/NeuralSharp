@@ -55,7 +55,7 @@ namespace NeuralSharp
         /// <summary>Updates the weights of the layer.</summary>
         /// <param name="rate">The learning rate to be used.</param>
         /// <param name="momentum">The momentum to be used.</param>
-        void UpdateWeights(double rate, double momentum = 0.0);
+        void UpdateWeights(float rate, float momentum = 0.0F);
         
         /// <summary>Backpropagates the given error trough the layer.</summary>
         /// <param name="outputError">The output error to be backpropagated.</param>

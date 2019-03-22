@@ -108,7 +108,7 @@ namespace NeuralSharp
         /// <param name="height">The height of the portion of the image to be copied.</param>
         /// <param name="array">The array to be copied the image into.</param>
         /// <param name="arraySkip">The index of the first position of the array to be used.</param>
-        public void ToArray(int depth, int width, int height, double[] array, int arraySkip = 0)
+        public void ToArray(int depth, int width, int height, float[] array, int arraySkip = 0)
         {
             Backbone.ImageToArray(this.Raw, this.Depth, this.Width, this.Height, depth, width, height, array, arraySkip);
         }
@@ -116,7 +116,7 @@ namespace NeuralSharp
         /// <summary>Copies the content of the image into an array.</summary>
         /// <param name="array">The array to be copied into.</param>
         /// <param name="arraySkip">The index of the first position of the array to be used.</param>
-        public void ToArray(double[] array, int arraySkip = 0)
+        public void ToArray(float[] array, int arraySkip = 0)
         {
             this.ToArray(this.Depth, this.Width, this.Height, array, arraySkip);
         }
@@ -153,7 +153,7 @@ namespace NeuralSharp
         /// <param name="depth">The depth of the portion to be copied into.</param>
         /// <param name="width">The width of the portion to be copied into.</param>
         /// <param name="height">The height of the portion to be copied into.</param>
-        public void FromArray(double[] array, int skip, int w, int x, int y, int depth, int width, int height)
+        public void FromArray(float[] array, int skip, int w, int x, int y, int depth, int width, int height)
         {
             Backbone.ArrayToImage(this.Raw, this.Depth, this.Width, this.Height, array, skip, w, x, y, depth, width, height);
         }
@@ -161,7 +161,7 @@ namespace NeuralSharp
         /// <summary>Copies data from an array.</summary>
         /// <param name="array">The array to be copied from.</param>
         /// <param name="skip">The index of the first entry of the array to be used.</param>
-        public void FromArray(double[] array, int skip = 0)
+        public void FromArray(float[] array, int skip = 0)
         {
             this.FromArray(array, skip, 0, 0, 0, this.Depth, this.Width, this.Height);
         }
@@ -225,7 +225,7 @@ namespace NeuralSharp
                     {
                         this.SetValue(k + thisW, i + thisX, j + thisY, 0.0F);
                     }
-                    double totalWeight = 0.0;
+                    float totalWeight = 0.0F;
                     for (int k = fromX; k < toX; k++)
                     {
                         for (int l = fromY; l < toY; l++)
@@ -304,7 +304,7 @@ namespace NeuralSharp
                     for (int j = 0; j < this.Height; j++)
                     {
                         Color pixel = image.GetPixel(i, j);
-                        this.Raw[i * this.Height + j] = (float)Math.Sqrt(pixel.R * pixel.R * 0.241F + pixel.G * pixel.G * 0.691F + pixel.B * pixel.B * 0.068F) / 255.0F;
+                        this.Raw[i * this.Height + j] = (float)(float)Math.Sqrt(pixel.R * pixel.R * 0.241F + pixel.G * pixel.G * 0.691F + pixel.B * pixel.B * 0.068F) / 255.0F;
                     }
                 }
             }
@@ -325,40 +325,40 @@ namespace NeuralSharp
         public static Image AdaptFromBitmap(string path, int width, int height)
         {
             Bitmap image = new Bitmap(path);
-            double ratio = (double)width / height;
-            double originalRatio = (double)image.Width / (double)image.Height;
-            double scale;
-            double skipX;
-            double skipY;
+            float ratio = (float)width / height;
+            float originalRatio = (float)image.Width / (float)image.Height;
+            float scale;
+            float skipX;
+            float skipY;
             if (originalRatio > ratio)
             {
                 skipX = image.Width * (1 - ratio / originalRatio) / 2.0F;
-                skipY = 0.0;
-                scale = (double)image.Height / height;
+                skipY = 0.0F;
+                scale = (float)image.Height / height;
             }
             else
             {
                 skipY = image.Height * (1 - originalRatio / ratio) / 2.0F;
-                skipX = 0.0;
-                scale = (double)image.Width / width;
+                skipX = 0.0F;
+                scale = (float)image.Width / width;
             }
             Image retVal = new Image(3, width, height);
-            if (scale <= 1.0 || true)
+            if (scale <= 1.0F || true)
             {
                 for (int i = 0; i < width; i++)
                 {
                     for (int j = 0; j < height; j++)
                     {
-                        double x = skipX + scale * i;
-                        double y = skipY + scale * j;
+                        float x = skipX + scale * i;
+                        float y = skipY + scale * j;
                         int apprX = (int)x;
                         int apprY = (int)y;
-                        double a = x - apprX;
-                        double b = y - apprY;
-                        double weight0 = a * b;
-                        double weight1 = a * (1 - b);
-                        double weight2 = (1 - a) * b;
-                        double weight3 = (1 - a) * (1 - b);
+                        float a = x - apprX;
+                        float b = y - apprY;
+                        float weight0 = a * b;
+                        float weight1 = a * (1 - b);
+                        float weight2 = (1 - a) * b;
+                        float weight3 = (1 - a) * (1 - b);
                         int apprX1;
                         if (apprX + 1 < image.Width)
                         {
@@ -381,9 +381,9 @@ namespace NeuralSharp
                         Color color1 = image.GetPixel(apprX1, apprY);
                         Color color2 = image.GetPixel(apprX, apprY1);
                         Color color3 = image.GetPixel(apprX, apprY);
-                        retVal.Raw[i * height + j] = (float)Math.Sqrt(color0.R * color0.R * weight0 + color1.R * color1.R * weight1 + color2.R * color2.R * weight2 + color3.R * color3.R * weight3) / 255.0F;
-                        retVal.Raw[1 * width * height + i * height + j] = (float)Math.Sqrt(color0.G * color0.G * weight0 + color1.G * color1.G * weight1 + color2.G * color2.G * weight2 + color3.G * color3.G * weight3) / 255.0F;
-                        retVal.Raw[2 * width * height + i * height + j] = (float)Math.Sqrt(color0.B * color0.B * weight0 + color1.B * color1.B * weight1 + color2.B * color2.B * weight2 + color3.B * color3.B * weight3) / 255.0F;
+                        retVal.Raw[i * height + j] = (float)(float)Math.Sqrt(color0.R * color0.R * weight0 + color1.R * color1.R * weight1 + color2.R * color2.R * weight2 + color3.R * color3.R * weight3) / 255.0F;
+                        retVal.Raw[1 * width * height + i * height + j] = (float)(float)Math.Sqrt(color0.G * color0.G * weight0 + color1.G * color1.G * weight1 + color2.G * color2.G * weight2 + color3.G * color3.G * weight3) / 255.0F;
+                        retVal.Raw[2 * width * height + i * height + j] = (float)(float)Math.Sqrt(color0.B * color0.B * weight0 + color1.B * color1.B * weight1 + color2.B * color2.B * weight2 + color3.B * color3.B * weight3) / 255.0F;
                     }
                 }
             }
@@ -393,28 +393,28 @@ namespace NeuralSharp
                 {
                     for (int j = 0; j < height; j++)
                     {
-                        double startX = skipX + scale * i;
-                        double startY = skipY + scale * j;
-                        double endX = skipX + scale * (i + 1);
-                        double endY = skipY + scale * (j + 1);
+                        float startX = skipX + scale * i;
+                        float startY = skipY + scale * j;
+                        float endX = skipX + scale * (i + 1);
+                        float endY = skipY + scale * (j + 1);
                         int intStartX = (int)startX;
                         int intStartY = (int)startY;
                         int intEndX = (int)Math.Ceiling(endX) - 1;
                         int intEndY = (int)Math.Ceiling(endY) - 1;
-                        double red = 0.0;
-                        double green = 0.0;
-                        double blue = 0.0;
-                        double totWeight = 0.0;
+                        float red = 0.0F;
+                        float green = 0.0F;
+                        float blue = 0.0F;
+                        float totWeight = 0.0F;
                         for (int k = (int)startX; k <= intEndX; k++)
                         {
-                            double weightX = 0.0;
+                            float weightX = 0.0F;
                             if (intStartX < k && k < intEndX)
                             {
-                                weightX += 1.0;
+                                weightX += 1.0F;
                             }
                             if (k == intStartX)
                             {
-                                weightX += 1.0 - (startX - intStartX);
+                                weightX += 1.0F - (startX - intStartX);
                             }
                             if (k == intEndX)
                             {
@@ -422,14 +422,14 @@ namespace NeuralSharp
                             }
                             for (int l = (int)startY; l <= intEndY; l++)
                             {
-                                double weightY = 0.0;
+                                float weightY = 0.0F;
                                 if (intStartY < l && l < intEndY)
                                 {
-                                    weightY += 1.0;
+                                    weightY += 1.0F;
                                 }
                                 if (l == intStartY)
                                 {
-                                    weightY = 1.0 - (startY - intStartY);
+                                    weightY = 1.0F - (startY - intStartY);
                                 }
                                 if (l == intEndY)
                                 {
@@ -437,7 +437,7 @@ namespace NeuralSharp
                                 }
                                 if (k < image.Width && l < image.Height)
                                 {
-                                    double weight = weightX * weightY;
+                                    float weight = weightX * weightY;
                                     Color color = image.GetPixel(k, l);
                                     red += color.R * color.R * weight;
                                     green += color.G * color.G * weight;
@@ -451,9 +451,9 @@ namespace NeuralSharp
                         {
 
                         }
-                        retVal.Raw[i * height + j] = (float)(Math.Sqrt(red / totWeight) / 255.0);
-                        retVal.Raw[1 * width * height + i * height + j] = (float)(Math.Sqrt(green / totWeight) / 255.0);
-                        retVal.Raw[2 * width * height + i * height + j] = (float)(Math.Sqrt(blue / totWeight) / 255.0);
+                        retVal.Raw[i * height + j] = (float)((float)Math.Sqrt(red / totWeight) / 255.0);
+                        retVal.Raw[1 * width * height + i * height + j] = (float)((float)Math.Sqrt(green / totWeight) / 255.0);
+                        retVal.Raw[2 * width * height + i * height + j] = (float)((float)Math.Sqrt(blue / totWeight) / 255.0);
                     }
                 }
             }
@@ -520,7 +520,7 @@ namespace NeuralSharp
                     Color color;
                     if (smart)
                     {
-                        int bright = Math.Min((int)Math.Round(Math.Sqrt(this.Raw[w * this.Width * this.Height + i * this.Height + j]) * 255.0F * 3), 255 * 3);
+                        int bright = Math.Min((int)Math.Round((float)Math.Sqrt(this.Raw[w * this.Width * this.Height + i * this.Height + j]) * 255.0F * 3), 255 * 3);
                         color = Color.FromArgb(Math.Min(bright, 255), Math.Max(0, Math.Min(bright - 255, 255)), Math.Max(0, Math.Min(bright - 510, 255)));
                     }
                     else
@@ -664,16 +664,16 @@ namespace NeuralSharp
             FromMnistFunc(stream, array, normalize, count, skip, emnist);
         }
 
-        private static void FromMnistLabelsFunc(Stream stream, double[][] array, bool smart, int count, int skip, int labels)
+        private static void FromMnistLabelsFunc(Stream stream, float[][] array, bool smart, int count, int skip, int labels)
         {
             stream.Position += skip;
             if (smart)
             {
-                double[][] vectorLables = new double[labels][];
+                float[][] vectorLables = new float[labels][];
                 for (int i = 0; i < labels; i++)
                 {
-                    vectorLables[i] = new double[labels];
-                    vectorLables[i][i] = 1.0;
+                    vectorLables[i] = new float[labels];
+                    vectorLables[i][i] = 1.0F;
                 }
                 for (int i = 0; i < count; i++)
                 {
@@ -684,8 +684,8 @@ namespace NeuralSharp
             {
                 for (int i = 0; i < count; i++)
                 {
-                    array[i] = new double[labels];
-                    array[i][stream.ReadByte()] = 1.0;
+                    array[i] = new float[labels];
+                    array[i][stream.ReadByte()] = 1.0F;
                 }
             }
         }
@@ -697,7 +697,7 @@ namespace NeuralSharp
         /// <param name="skip">The index of the first label to read.</param>
         /// <param name="labels">The amount of labels.</param>
         /// <returns>The read labels.</returns>
-        public static double[][] FromMnistLabels(Stream stream, bool smart = true, int maxCount = 0, int skip = 0, int labels = 10)
+        public static float[][] FromMnistLabels(Stream stream, bool smart = true, int maxCount = 0, int skip = 0, int labels = 10)
         {
             stream.Position = 4;
             int count = (stream.ReadByte() << 24) + (stream.ReadByte() << 16) + (stream.ReadByte() << 8) + stream.ReadByte();
@@ -705,7 +705,7 @@ namespace NeuralSharp
             {
                 count = maxCount;
             }
-            double[][] retVal = new double[count][];
+            float[][] retVal = new float[count][];
             FromMnistLabelsFunc(stream, retVal, smart, count, skip, labels);
             return retVal;
         }
@@ -717,7 +717,7 @@ namespace NeuralSharp
         /// <param name="maxCount">The maximum amount of read labels.</param>
         /// <param name="skip">The index of the first label to be read.</param>
         /// <param name="labels">The amount of labels.</param>
-        public static void FromMnistLabels(Stream stream, double[][] array, bool smart = true, int maxCount = 0, int skip = 0, int labels = 10)
+        public static void FromMnistLabels(Stream stream, float[][] array, bool smart = true, int maxCount = 0, int skip = 0, int labels = 10)
         {
             stream.Position = 4;
             int count = (stream.ReadByte() << 24) + (stream.ReadByte() << 16) + (stream.ReadByte() << 8) + stream.ReadByte();
@@ -751,10 +751,10 @@ namespace NeuralSharp
         /// <param name="skip">The index of the first label to be read.</param>
         /// <param name="labels">The amount of labels.</param>
         /// <returns>The read labels.</returns>
-        public static double[][] FromMnistLabels(string fileName, bool smart = true, int maxCount = 0, int skip = 0, int labels = 10)
+        public static float[][] FromMnistLabels(string fileName, bool smart = true, int maxCount = 0, int skip = 0, int labels = 10)
         {
             FileStream fs = new FileStream(fileName, FileMode.Open);
-            double[][] retVal = Image.FromMnistLabels(fs, smart, maxCount, skip, labels);
+            float[][] retVal = Image.FromMnistLabels(fs, smart, maxCount, skip, labels);
             fs.Close();
             return retVal;
         }

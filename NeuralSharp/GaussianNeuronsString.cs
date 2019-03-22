@@ -44,30 +44,30 @@ namespace NeuralSharp
         /// <summary>The activation function of the layer.</summary>
         /// <param name="input">The input of the activation function.</param>
         /// <returns>The output of the activation function.</returns>
-        protected override double Activation(double input)
+        protected override float Activation(float input)
         {
-            return Math.Exp(-input * input);
+            return(float)Math.Exp(-input * input);
         }
 
         /// <summary>The derivative of the activation function of the layer.</summary>
         /// <param name="input">The input of the activation function.</param>
         /// <param name="output">The output of the activation function.</param>
         /// <returns>The derivative of the activation function.</returns>
-        protected override double ActivationDerivative(double input, double output)
+        protected override float ActivationDerivative(float input, float output)
         {
             return -2 * input * output;
         }
 
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The crated instance of the <code>GaussianNeuronsString</code> class.</returns>
-        public override ILayer<double[], double[]> CreateSiamese()
+        public override ILayer<float[], float[]> CreateSiamese()
         {
             return new GaussianNeuronsString(this, true);
         }
 
         /// <summary>Creates a clone of the layer.</summary>
         /// <returns>The created instance of the <code>GaussianNeuronsString</code> class.</returns>
-        public override ILayer<double[], double[]> Clone()
+        public override ILayer<float[], float[]> Clone()
         {
             return new GaussianNeuronsString(this, false);
         }

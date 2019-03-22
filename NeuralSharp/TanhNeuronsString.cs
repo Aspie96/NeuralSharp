@@ -43,30 +43,30 @@ namespace NeuralSharp
         /// <summary>The activation function.</summary>
         /// <param name="input">The input.</param>
         /// <returns>The output.</returns>
-        protected override double Activation(double input)
+        protected override float Activation(float input)
         {
-            return Math.Tanh(input);
+            return (float)Math.Tanh(input);
         }
 
         /// <summary>The derivative of the activation function.</summary>
         /// <param name="input">The input.</param>
         /// <param name="output">The output.</param>
         /// <returns>The derivative.</returns>
-        protected override double ActivationDerivative(double input, double output)
+        protected override float ActivationDerivative(float input, float output)
         {
-            return 1.0 - output * output;
+            return 1.0F - output * output;
         }
 
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The created siamese.</returns>
-        public override ILayer<double[], double[]> CreateSiamese()
+        public override ILayer<float[], float[]> CreateSiamese()
         {
             return new TanhNeuronsString(this, true);
         }
 
         /// <summary>Creates a clone of the layer.</summary>
         /// <returns>The created clone.</returns>
-        public override ILayer<double[], double[]> Clone()
+        public override ILayer<float[], float[]> Clone()
         {
             return new TanhNeuronsString(this, false);
         }

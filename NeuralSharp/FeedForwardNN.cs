@@ -31,10 +31,10 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents a feed forward neural network.</summary>
-    public class FeedForwardNN : Sequential<double[], IArraysLayer, IArrayError>, IArraysLayer
+    public class FeedForwardNN : Sequential<float[], IArraysLayer, IArrayError>, IArraysLayer
     {
-        private double[] error1;
-        private double[] error2;
+        private float[] error1;
+        private float[] error2;
         private bool layersConnected;
 
         /// <summary>Either creates a siamese of the given <code>FeedForwardNN</code> instance or clones it.</summary>
@@ -46,8 +46,8 @@ namespace NeuralSharp
             {
                 return layer.InputSize;
             }), (original.LastLayer).OutputSize);
-            this.error1 = Backbone.CreateArray<double>(maxLength);
-            this.error2 = Backbone.CreateArray<double>(maxLength);
+            this.error1 = Backbone.CreateArray<float>(maxLength);
+            this.error2 = Backbone.CreateArray<float>(maxLength);
             this.layersConnected = false;
         }
 
@@ -59,8 +59,8 @@ namespace NeuralSharp
             {
                 return layer.InputSize;
             }), layers.Last().OutputSize);
-            this.error1 = Backbone.CreateArray<double>(maxLength);
-            this.error2 = Backbone.CreateArray<double>(maxLength);
+            this.error1 = Backbone.CreateArray<float>(maxLength);
+            this.error2 = Backbone.CreateArray<float>(maxLength);
             this.layersConnected = false;
         }
         
@@ -90,16 +90,16 @@ namespace NeuralSharp
         
         /// <summary>Creates an array which can be used as output error.</summary>
         /// <returns>The created array.</returns>
-        protected override double[] NewError()
+        protected override float[] NewError()
         {
-            return Backbone.CreateArray<double>(this.OutputSize);
+            return Backbone.CreateArray<float>(this.OutputSize);
         }
         
         /// <summary>Feeds the network forward.</summary>
         /// <param name="input">The array to be copied the input from.</param>
         /// <param name="output">The array to be copied the output into.</param>
         /// <param name="learning">Whether the network is being used in a training session.</param>
-        public override void Feed(double[] input, double[] output, bool learning = false)
+        public override void Feed(float[] input, float[] output, bool learning = false)
         {
             this.Feed(input, 0, output, 0, learning);
         }
@@ -110,7 +110,7 @@ namespace NeuralSharp
         /// <param name="outputArray">The array to be copied the output into.</param>
         /// <param name="outputSkip">The index of the first entry of the given output array to be used.</param>
         /// <param name="learning">Whether the network is being used in a training session.</param>
-        public void Feed(double[] inputArray, int inputSkip, double[] outputArray, int outputSkip, bool learning = false)
+        public void Feed(float[] inputArray, int inputSkip, float[] outputArray, int outputSkip, bool learning = false)
         {
             Array.Copy(inputArray, inputSkip, this.Input, this.InputSkip, this.InputSize);
             this.Feed(learning);
@@ -121,13 +121,13 @@ namespace NeuralSharp
         /// <param name="outputErrorArray">The output error to be backpropagated.</param>
         /// <param name="outputErrorSkip">The index of the first entry of the output error array to be used.</param>
         /// <param name="learning">Whether the network is being used in a training session.</param>
-        public void BackPropagate(double[] outputErrorArray, int outputErrorSkip, bool learning = true)
+        public void BackPropagate(float[] outputErrorArray, int outputErrorSkip, bool learning = true)
         {
             Backbone.CopyArray(outputErrorArray, outputErrorSkip, this.error2, 0, this.OutputSize);
             for (int i = this.Layers.Count - 1; i >= 0; i -= 1)
             {
                 this.Layers.ElementAt(i).BackPropagate(this.error2, this.error1, learning);
-                double[] aux = this.error1;
+                float[] aux = this.error1;
                 this.error1 = this.error2;
                 this.error2 = aux;
             }
@@ -136,7 +136,7 @@ namespace NeuralSharp
         /// <summary>Backpropagates the given error trough the network.</summary>
         /// <param name="outputError">The output error to be backpropagated.</param>
         /// <param name="learning">Whether the network is being used in a training session.</param>
-        public override void BackPropagate(double[] outputError, bool learning = true)
+        public override void BackPropagate(float[] outputError, bool learning = true)
         {
             this.BackPropagate(outputError, 0, learning);
         }
@@ -147,7 +147,7 @@ namespace NeuralSharp
         /// <param name="inputErrorArray">The array to be written the input error into.</param>
         /// <param name="inputErrorSkip">The index of the first entry of the output error array to be used.</param>
         /// <param name="learning">Whether the network is being used in a training session.</param>
-        public void BackPropagate(double[] outputErrorArray, int outputErrorSkip, double[] inputErrorArray, int inputErrorSkip, bool learning)
+        public void BackPropagate(float[] outputErrorArray, int outputErrorSkip, float[] inputErrorArray, int inputErrorSkip, bool learning)
         {
             this.BackPropagate(outputErrorArray, outputErrorSkip, learning);
             Backbone.CopyArray(this.error2, 0, inputErrorArray, inputErrorSkip, this.InputSize);
@@ -157,7 +157,7 @@ namespace NeuralSharp
         /// <param name="outputError">The output error to be backpropagated.</param>
         /// <param name="inputError">The array to be written the input error into.</param>
         /// <param name="learning">Whether the network is being used in a training session.</param>
-        public override void BackPropagate(double[] outputError, double[] inputError, bool learning)
+        public override void BackPropagate(float[] outputError, float[] inputError, bool learning)
         {
             this.BackPropagate(outputError, 0, inputError, 0, learning);
         }
@@ -165,7 +165,7 @@ namespace NeuralSharp
         /// <summary>Updates the weights of the network.</summary>
         /// <param name="rate">The learning rate to be used.</param>
         /// <param name="momentum">The momentum to be used.</param>
-        public override void UpdateWeights(double rate, double momentum = 0.0)
+        public override void UpdateWeights(float rate, float momentum = 0.0F)
         {
             foreach (IArraysLayer layer in this.Layers)
             {
@@ -178,7 +178,7 @@ namespace NeuralSharp
         /// <param name="inputSkip">The index of the first entry of the input array to be used.</param>
         /// <param name="outputArray">The output array to be set.</param>
         /// <param name="outputSkip">The index of the first entry of the output array to be used.</param>
-        public void SetInputAndOutput(double[] inputArray, int inputSkip, double[] outputArray, int outputSkip)
+        public void SetInputAndOutput(float[] inputArray, int inputSkip, float[] outputArray, int outputSkip)
         {
             if (this.layersConnected)
             {
@@ -189,7 +189,7 @@ namespace NeuralSharp
             {
                 if (this.Layers.Count > 1)
                 {
-                    double[] array = inputArray;
+                    float[] array = inputArray;
                     array = this.FirstLayer.SetInputGetOutput(array, inputSkip);
                     for (int i = 1; i < this.Layers.Count - 1; i++)
                     {
@@ -209,9 +209,9 @@ namespace NeuralSharp
         /// <param name="inputArray">The input array to be set.</param>
         /// <param name="inputSkip">The index of the first entry of the output array to be used.</param>
         /// <returns>The created output array.</returns>
-        public double[] SetInputGetOutput(double[] inputArray, int inputSkip)
+        public float[] SetInputGetOutput(float[] inputArray, int inputSkip)
         {
-            double[] retVal = Backbone.CreateArray<double>(this.OutputSize);
+            float[] retVal = Backbone.CreateArray<float>(this.OutputSize);
             this.SetInputAndOutput(inputArray, InputSkip, retVal, 0);
             return retVal;
         }
@@ -225,7 +225,7 @@ namespace NeuralSharp
         /// <param name="errorFunction">The error function to be used.</param>
         /// <param name="errorSkip">The index of the first entry of the error array to be used.</param>
         /// <returns>The output error of the network.</returns>
-        public double GetError(double[] outputArray, int outputSkip, double[] expectedArray, int expectedSkip, double[] errorArray, IArrayError errorFunction, int errorSkip)
+        public float GetError(float[] outputArray, int outputSkip, float[] expectedArray, int expectedSkip, float[] errorArray, IArrayError errorFunction, int errorSkip)
         {
             return errorFunction.GetError(outputArray, outputSkip, expectedArray, expectedSkip, errorArray, errorSkip, this.OutputSize);
         }
@@ -236,7 +236,7 @@ namespace NeuralSharp
         /// <param name="error">The array to be written the output error into.</param>
         /// <param name="errorFunction">The error function to be used.</param>
         /// <returns>The output error of the network.</returns>
-        public override double GetError(double[] output, double[] expectedOutput, double[] error, IArrayError errorFunction)
+        public override float GetError(float[] output, float[] expectedOutput, float[] error, IArrayError errorFunction)
         {
             return errorFunction.GetError(output, expectedOutput, error, this.OutputSize);
         }
@@ -251,7 +251,7 @@ namespace NeuralSharp
         /// <param name="errorFunction">The error function to be used.</param>
         /// <param name="learning">Whether the network is being used in a training session.</param>
         /// <returns>The output error of the network.</returns>
-        public double FeedAndGetError(double[] inputArray, int inputSkip, double[] expectedArray, int expectedSkip, double[] errorArray, int errorSkip, IArrayError errorFunction, bool learning)
+        public float FeedAndGetError(float[] inputArray, int inputSkip, float[] expectedArray, int expectedSkip, float[] errorArray, int errorSkip, IArrayError errorFunction, bool learning)
         {
             Array.Copy(inputArray, inputSkip, this.Input, this.InputSkip, this.InputSize);
             this.Feed(learning);
@@ -265,7 +265,7 @@ namespace NeuralSharp
         /// <param name="errorFunction">The error function to be used.</param>
         /// <param name="learning">Whether the network is being used in a training session.</param>
         /// <returns>The output error of the network.</returns>
-        public override double FeedAndGetError(double[] input, double[] expectedOutput, double[] error, IArrayError errorFunction, bool learning)
+        public override float FeedAndGetError(float[] input, float[] expectedOutput, float[] error, IArrayError errorFunction, bool learning)
         {
             return this.FeedAndGetError(input, 0, expectedOutput, 0, error, 0, errorFunction, learning);
         }
@@ -273,7 +273,7 @@ namespace NeuralSharp
         /// <summary>Sets the input array and the output array of the network.</summary>
         /// <param name="input">The input array to be set.</param>
         /// <param name="output">The output array to be set.</param>
-        public override void SetInputAndOutput(double[] input, double[] output)
+        public override void SetInputAndOutput(float[] input, float[] output)
         {
             this.SetInputAndOutput(input, 0, output, 0);
         }
@@ -281,21 +281,21 @@ namespace NeuralSharp
         /// <summary>Sets the input array of the network and creates and sets the output array.</summary>
         /// <param name="input">The input array to be set.</param>
         /// <returns>The created output array.</returns>
-        public override double[] SetInputGetOutput(double[] input)
+        public override float[] SetInputGetOutput(float[] input)
         {
             return this.SetInputGetOutput(input, 0);
         }
 
         /// <summary>Creates a siamese of the network.</summary>
         /// <returns>The created siamese.</returns>
-        public override ILayer<double[], double[]> CreateSiamese()
+        public override ILayer<float[], float[]> CreateSiamese()
         {
             return new FeedForwardNN(this, true);
         }
 
         /// <summary>Creates a clone of the network.</summary>
         /// <returns>The created clone.</returns>
-        public override ILayer<double[], double[]> Clone()
+        public override ILayer<float[], float[]> Clone()
         {
             return new FeedForwardNN(this, false);
         }

@@ -41,26 +41,26 @@ namespace NeuralSharp
         /// <param name="createIO">Whether the input array and the output array of the layer are to be created.</param>
         public ReluNeuronsString(int length, bool createIO = false) : base(length, createIO) { }
 
-        protected override double Activation(double input)
+        protected override float Activation(float input)
         {
-            return (input > 0.0 ? input : 0.0);
+            return (input > 0.0F ? input : 0.0F);
         }
 
-        protected override double ActivationDerivative(double input, double output)
+        protected override float ActivationDerivative(float input, float output)
         {
-            return (output > 0.0 ? 1.0 : 0.0);
+            return (output > 0.0F ? 1.0F : 0.0F);
         }
 
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The siamese.</returns>
-        public override ILayer<double[], double[]> CreateSiamese()
+        public override ILayer<float[], float[]> CreateSiamese()
         {
             return new ReluNeuronsString(this, true);
         }
 
         /// <summary>Creates a clone of the layer.</summary>
         /// <returns>The clone.</returns>
-        public override ILayer<double[], double[]> Clone()
+        public override ILayer<float[], float[]> Clone()
         {
             return new ReluNeuronsString(this, false);
         }

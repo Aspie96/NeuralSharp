@@ -32,7 +32,7 @@ namespace NeuralSharp
     public class DropoutLayer : NeuronsString
     {
         private bool[] dropped;
-        private double dropChance;
+        private float dropChance;
 
         /// <summary>Either creates a siamese of the given <code>DropoutLayer</code> instance or clones it.</summary>
         /// <param name="original">The original instance to be created a siamese of or cloned.</param>
@@ -47,14 +47,14 @@ namespace NeuralSharp
         /// <param name="length">The lenght of the layer.</param>
         /// <param name="dropChance">The dropout chance of the layer.</param>
         /// <param name="createIO">Whether the input array and the output array of the layer are to be created.</param>
-        public DropoutLayer(int length, double dropChance, bool createIO = false) : base(length, createIO)
+        public DropoutLayer(int length, float dropChance, bool createIO = false) : base(length, createIO)
         {
             this.dropped = Backbone.CreateArray<bool>(this.Length);
             this.dropChance = dropChance;
         }
 
         /// <summary>The dropout chance of the layer.</summary>
-        public double DropChance
+        public float DropChance
         {
             get { return this.dropChance; }
         }
@@ -72,21 +72,21 @@ namespace NeuralSharp
         /// <param name="inputErrorArray">The array to be written the input error into.</param>
         /// <param name="inputErrorSkip">The index of the first entry of the input error array to be used.</param>
         /// <param name="learning">Whether the layer is being used in a training session.</param>
-        public override void BackPropagate(double[] outputErrorArray, int outputErrorSkip, double[] inputErrorArray, int inputErrorSkip, bool learning)
+        public override void BackPropagate(float[] outputErrorArray, int outputErrorSkip, float[] inputErrorArray, int inputErrorSkip, bool learning)
         {
             Backbone.BackpropagateDropout(this.Input, this.InputSkip, this.Output, this.OutputSkip, this.Length, this.dropped, this.DropChance, learning, outputErrorArray, outputErrorSkip, inputErrorArray, inputErrorSkip);
         }
 
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The created instance of the <code>DropoutLayer</code> class.</returns>
-        public override ILayer<double[], double[]> CreateSiamese()
+        public override ILayer<float[], float[]> CreateSiamese()
         {
             return new DropoutLayer(this, true);
         }
 
         /// <summary>Creates a clone of the layer.</summary>
         /// <returns>The created instance of the <code>DropoutLayer</code> class.</returns>
-        public override ILayer<double[], double[]> Clone()
+        public override ILayer<float[], float[]> Clone()
         {
             return new DropoutLayer(this, false);
         }

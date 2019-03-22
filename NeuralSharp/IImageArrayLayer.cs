@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents a layer whose input is an image and whose output is an array.</summary>
-    public interface IImageArrayLayer : ILayer<Image, double[]>
+    public interface IImageArrayLayer : ILayer<Image, float[]>
     {
         /// <summary>The depth of the input of the layer.</summary>
         int InputDepth { get; }
@@ -48,6 +48,6 @@ namespace NeuralSharp
         /// <param name="input">The input image to be set.</param>
         /// <param name="outputArray">The output array to be set.</param>
         /// <param name="outputSkip">The index of the first position of the output array to be used.</param>
-        void SetInputAndOutput(Image input, double[] outputArray, int outputSkip);
+        void SetInputAndOutput(Image input, float[] outputArray, int outputSkip);
     }
 }

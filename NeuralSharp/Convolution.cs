@@ -81,7 +81,7 @@ namespace NeuralSharp
                 this.biasesDeltas = Backbone.CreateArray<float>(original.OutputDepth);
                 this.biasesMomentums = Backbone.CreateArray<float>(original.OutputDepth);
                 this.kernelFilters = Backbone.CreateArray<float>(original.OutputDepth, inputDepth * kernelSide * kernelSide);
-                Backbone.RandomizeMatrix(this.kernelFilters, original.OutputDepth, inputDepth * kernelSide * kernelSide, 2.0 / (inputDepth * kernelSide * kernelSide + outputDepth));
+                Backbone.RandomizeMatrix(this.kernelFilters, original.OutputDepth, inputDepth * kernelSide * kernelSide, 2.0F / (inputDepth * kernelSide * kernelSide + outputDepth));
                 this.kernelGradients = Backbone.CreateArray<float>(original.OutputDepth, inputDepth * kernelSide * kernelSide);
                 this.kernelMomentums = Backbone.CreateArray<float>(original.OutputDepth, inputDepth * kernelSide * kernelSide);
                 this.siameseID = new object();
@@ -125,7 +125,7 @@ namespace NeuralSharp
             this.biasesDeltas = Backbone.CreateArray<float>(depth);
             this.biasesMomentums = Backbone.CreateArray<float>(depth);
             this.kernelFilters = Backbone.CreateArray<float>(depth, inputDepth * kernelSide * kernelSide);
-            Backbone.RandomizeMatrix(this.kernelFilters, depth, inputDepth * kernelSide * kernelSide, 2.0 / (inputDepth * kernelSide * kernelSide + outputDepth));
+            Backbone.RandomizeMatrix(this.kernelFilters, depth, inputDepth * kernelSide * kernelSide, 2.0F / (inputDepth * kernelSide * kernelSide + outputDepth));
             this.kernelGradients = Backbone.CreateArray<float>(depth, inputDepth * kernelSide * kernelSide);
             this.kernelMomentums = Backbone.CreateArray<float>(depth, inputDepth * kernelSide * kernelSide);
             this.kernelSide = kernelSide;
@@ -241,7 +241,7 @@ namespace NeuralSharp
         /// <summary>Updates the weights of the layer.</summary>
         /// <param name="rate">The learning rate to be used.</param>
         /// <param name="momentum">The momentum to be used.</param>
-        public void UpdateWeights(double rate, double momentum = 0.0)
+        public void UpdateWeights(float rate, float momentum = 0.0F)
         {
             Backbone.UpdateConvolution(this.biasesDeltas, this.biasesMomentums, this.biases, this.kernelFilters, this.kernelGradients, this.kernelMomentums, this.InputDepth, this.InputWidth, this.InputHeight, this.OutputDepth, this.OutputWidth, this.OutputHeight, this.KernelSide, (float)rate, (float)momentum);
         }

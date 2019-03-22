@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 namespace NeuralSharp
 {
     /// <summary>Represents the error function of an array.</summary>
-    public interface IArrayError : IError<double[]>
+    public interface IArrayError : IError<float[]>
     {
         /// <summary>Gets the error given the output array and the expected output array.</summary>
         /// <param name="outputArray">The output.</param>
@@ -38,7 +38,7 @@ namespace NeuralSharp
         /// <param name="errorSkip">The index of the first entry of the error array to be used.</param>
         /// <param name="length">The lenght of the output.</param>
         /// <returns>The error.</returns>
-        double GetError(double[] outputArray, int outputSkip, double[] expectedOutputArray, int expectedOutputSkip, double[] errorArray, int errorSkip, int length);
+        float GetError(float[] outputArray, int outputSkip, float[] expectedOutputArray, int expectedOutputSkip, float[] errorArray, int errorSkip, int length);
 
         /// <summary>Gets the error given the output array and the expected output array.</summary>
         /// <param name="outputArray">The output.</param>
@@ -46,6 +46,6 @@ namespace NeuralSharp
         /// <param name="errorArray">The array to be written the error into.</param>
         /// <param name="length">The lenght of the output.</param>
         /// <returns>The error.</returns>
-        double GetError(double[] outputArray, double[] expectedOutputArray, double[] errorArray, int length);
+        float GetError(float[] outputArray, float[] expectedOutputArray, float[] errorArray, int length);
     }
 }

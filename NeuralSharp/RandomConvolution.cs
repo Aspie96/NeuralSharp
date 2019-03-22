@@ -215,7 +215,7 @@ namespace NeuralSharp
         /// <param name="learning">Whether the layer is being used during a training session.</param>
         public void Feed(bool learning = false)
         {
-            Backbone.RandomizeMatrix(this.kernelFilters, this.OutputDepth, inputDepth * kernelSide * kernelSide, 2.0 / (inputDepth * kernelSide * kernelSide));
+            Backbone.RandomizeMatrix(this.kernelFilters, this.OutputDepth, inputDepth * kernelSide * kernelSide, 2.0F / (inputDepth * kernelSide * kernelSide));
             Backbone.ApplyConvolution(null, this.input.Raw, this.InputDepth, this.InputWidth, this.InputHeight, this.output.Raw, this.OutputDepth, this.OutputWidth, this.OutputHeight, this.kernelFilters, this.kernelSide, this.Stride, 1, this.padding, this.ActivationFunction);
         }
 
@@ -231,7 +231,7 @@ namespace NeuralSharp
         /// <summary>Updates the weights of the layer. Does nothing.</summary>
         /// <param name="rate">The learning rate to be used.</param>
         /// <param name="momentum">The momentum to be used.</param>
-        public void UpdateWeights(double rate, double momentum = 0.0) { }
+        public void UpdateWeights(float rate, float momentum = 0.0F) { }
 
         /// <summary>Sets the input image and the output image of the layer.</summary>
         /// <param name="input">The input image.</param>

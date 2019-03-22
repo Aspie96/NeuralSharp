@@ -30,9 +30,9 @@ namespace NeuralSharp
     {
         private static Random r = new Random(220);
 
-        public static double GetDouble()
+        public static float GetDouble()
         {
-            return RandomGenerator.r.NextDouble();
+            return (float)RandomGenerator.r.NextDouble();
         }
 
         public static float GetFloat()
@@ -51,9 +51,9 @@ namespace NeuralSharp
             }
         }
 
-        public static double GetNormalNumber(double variance)
+        public static float GetNormalNumber(float variance)
         {
-            return Math.Sqrt(variance) * Math.Sqrt(-2.0 * Math.Log(RandomGenerator.GetDouble())) * Math.Sin(2.0 * Math.PI * RandomGenerator.GetDouble());
+            return (float)Math.Sqrt(variance) * (float)Math.Sqrt(-2.0F * Math.Log(RandomGenerator.GetDouble())) * (float)Math.Sin(2.0F * Math.PI * RandomGenerator.GetDouble());
         }
 
         public static int GetInt(int max)

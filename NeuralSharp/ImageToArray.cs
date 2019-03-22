@@ -35,7 +35,7 @@ namespace NeuralSharp
         private int inputHeight;
         private int outputSkip;
         private Image input;
-        private double[] output;
+        private float[] output;
         private object siameseID;
 
         /// <summary>Either creates a siamese of the given <code>ImageToArray</code> instance or clones it.</summary>
@@ -79,7 +79,7 @@ namespace NeuralSharp
         }
 
         /// <summary>The output array of the layer.</summary>
-        public double[] Output
+        public float[] Output
         {
             get { return this.output; }
         }
@@ -137,7 +137,7 @@ namespace NeuralSharp
         /// <param name="outputError">The error to be backpropagated.</param>
         /// <param name="inputError">The image to be written the input error into.</param>
         /// <param name="learning">Whether the layer is being used in a training session.</param>
-        public void BackPropagate(double[] outputError, Image inputError, bool learning)
+        public void BackPropagate(float[] outputError, Image inputError, bool learning)
         {
             inputError.FromArray(outputError);
         }
@@ -145,13 +145,13 @@ namespace NeuralSharp
         /// <summary>Updates the weights of the layer.</summary>
         /// <param name="rate">The learning rate to be used.</param>
         /// <param name="momentum">The momentum to be used.</param>
-        public void UpdateWeights(double rate, double momentum = 0.0) { }
+        public void UpdateWeights(float rate, float momentum = 0.0F) { }
 
         /// <summary>Sets the input image and the output array of the layer.</summary>
         /// <param name="input">The input image to be set.</param>
         /// <param name="outputArray">The output array to be set.</param>
         /// <param name="outputSkip">The index of the first entry of the output array to be used.</param>
-        public void SetInputAndOutput(Image input, double[] outputArray, int outputSkip)
+        public void SetInputAndOutput(Image input, float[] outputArray, int outputSkip)
         {
             this.input = input;
             this.output = outputArray;
@@ -161,7 +161,7 @@ namespace NeuralSharp
         /// <summary>Sets the input image and the output array of the layer.</summary>
         /// <param name="input">The input image to be set.</param>
         /// <param name="output">The output array to be set.</param>
-        public void SetInputAndOutput(Image input, double[] output)
+        public void SetInputAndOutput(Image input, float[] output)
         {
             this.SetInputAndOutput(input, output, 0);
         }
@@ -169,16 +169,16 @@ namespace NeuralSharp
         /// <summary>Sets the input image and creates and sets the output array of the layer.</summary>
         /// <param name="input">The input image to be set.</param>
         /// <returns>The created output array.</returns>
-        public double[] SetInputGetOutput(Image input)
+        public float[] SetInputGetOutput(Image input)
         {
-            double[] retVal = Backbone.CreateArray<double>(this.OutputSize);
+            float[] retVal = Backbone.CreateArray<float>(this.OutputSize);
             this.SetInputAndOutput(input, retVal);
             return retVal;
         }
 
         /// <summary>Cretes a siamese of the layer.</summary>
         /// <returns>The created instance of the <code>ImageToArray</code> class.</returns>
-        public virtual ILayer<Image, double[]> CreateSiamese()
+        public virtual ILayer<Image, float[]> CreateSiamese()
         {
             return new ImageToArray(this, true);
         }
@@ -186,7 +186,7 @@ namespace NeuralSharp
         /// <summary>Creates a siamese of the layer.</summary>
         /// <returns>The created instance of the <code>ImageToArray</code> class.</returns>
 
-        public virtual ILayer<Image, double[]> Clone()
+        public virtual ILayer<Image, float[]> Clone()
         {
             return new ImageToArray(this, false);
         }
